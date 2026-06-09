@@ -3,546 +3,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GastroPlan - Gestor de Menús y Despensa</title>
-    <!-- Plugin 'forms' añadido para garantizar que los checkboxes se vean perfectos en móvil -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <title>GastroPlan: Menú y Despensa Compartida</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="mobile-web-app-capable" content="yes">
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { brand: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' } },
+                    animation: { 'slide-up': 'slideUp 0.3s ease-out', 'fade-in': 'fadeIn 0.2s ease-out', 'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite' },
+                    keyframes: { slideUp: { '0%': { transform: 'translateY(100%)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }, fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } } }
+                }
+            }
         }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        input[type="number"], input[type="text"], select { font-size: 16px !important; }
-        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .bottom-nav-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="text-slate-800 antialiased overflow-hidden h-screen w-screen relative">
 
-    <!-- PANTALLA DE LOGIN -->
-    <div id="login-container" class="fixed inset-0 bg-slate-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white p-8 md:p-12 rounded-[2rem] shadow-xl border border-slate-100 max-w-md w-full text-center flex flex-col items-center">
-            <div class="bg-gradient-to-br from-brand-400 to-brand-600 text-white w-20 h-20 rounded-3xl shadow-lg shadow-brand-500/30 flex items-center justify-center mb-6">
-                <i class="fa-solid fa-leaf text-4xl"></i>
+    <div id="login-container" class="absolute inset-0 z-50 bg-brand-50 flex flex-col justify-center items-center p-6">
+        <div class="max-w-md w-full text-center space-y-8">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-brand-500 text-white rounded-[2rem] shadow-xl shadow-brand-500/30 mb-4 transform rotate-3">
+                <i class="fa-solid fa-seedling text-5xl transform -rotate-3"></i>
             </div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">GastroPlan</h1>
-            <p class="text-sm text-slate-500 mb-8">Planifica tus comidas y gestiona tu despensa en la nube.</p>
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-2">GastroPlan<span class="text-brand-500">.</span></h1>
+                <p class="text-slate-500 text-lg">Tu cocina inteligente en la nube.</p>
+                <div class="mt-4 inline-block bg-brand-100 text-brand-700 px-3 py-1 rounded-full text-sm font-semibold">
+                    <i class="fa-solid fa-users mr-1"></i> Entorno Compartido
+                </div>
+            </div>
             
             <button onclick="window.loginWithGoogle()" class="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold px-6 py-4 rounded-2xl shadow-sm flex items-center justify-center gap-3 transition-transform active:scale-95 text-base">
                 <svg viewBox="0 0 24 24" class="w-6 h-6"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                Continuar con Google
+                Acceder para Sincronizar
             </button>
-            <button onclick="window.loginAsGuest()" class="w-full mt-3 bg-slate-900 text-white hover:bg-slate-800 font-bold px-6 py-4 rounded-2xl shadow-sm flex items-center justify-center gap-3 transition-transform active:scale-95 text-base">
-                <i class="fa-solid fa-user-astronaut text-xl"></i>
-                Probar sin cuenta (Modo Local)
-            </button>
-            <div id="login-loading" class="hidden mt-4 text-brand-600 text-sm font-bold flex items-center gap-2">
-                <i class="fa-solid fa-circle-notch fa-spin"></i> Conectando...
+            <div id="login-loading" class="hidden mt-4 text-brand-600 text-sm font-bold flex items-center justify-center gap-2">
+                <!-- Se inyecta por JS -->
             </div>
+            <p class="text-xs text-slate-400 max-w-xs mx-auto mt-8">Todos los cambios que hagas serán visibles al instante para tu pareja y cualquier otra persona con acceso.</p>
         </div>
     </div>
 
-    <!-- APLICACIÓN PRINCIPAL -->
-    <div id="app-container" class="hidden flex-col min-h-screen pb-20 md:pb-0">
-        <!-- Encabezado Principal -->
-        <header class="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-gradient-to-br from-brand-400 to-brand-600 text-white p-2 md:p-2.5 rounded-xl md:rounded-2xl shadow-lg shadow-brand-500/30 flex items-center justify-center">
-                        <i class="fa-solid fa-leaf text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">GastroPlan</h1>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1 md:space-x-2">
-                    <button onclick="window.reiniciarApp()" class="text-slate-400 hover:text-red-500 p-3 rounded-xl hover:bg-red-50 transition-colors text-sm flex items-center gap-1.5 font-semibold active:scale-95" title="Restablecer datos de fábrica">
-                        <i class="fa-solid fa-arrow-rotate-left text-lg"></i>
-                        <span class="hidden md:inline">Restablecer</span>
-                    </button>
-                    <button onclick="window.logoutUsuario()" class="text-slate-400 hover:text-slate-700 p-3 rounded-xl hover:bg-slate-100 transition-colors text-sm flex items-center gap-1.5 font-semibold active:scale-95" title="Cerrar sesión">
-                        <i class="fa-solid fa-arrow-right-from-bracket text-lg"></i>
-                        <span class="hidden md:inline">Salir</span>
-                    </button>
+    <div id="app-container" class="hidden h-full flex-col max-w-2xl mx-auto bg-white shadow-2xl relative">
+        <!-- Header Principal -->
+        <header class="bg-white px-5 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center z-10 sticky top-0">
+            <div>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight" id="header-title">Dashboard</h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse-fast"></span>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider" id="header-subtitle">En directo</p>
                 </div>
             </div>
-            <!-- Menú de Navegación (Solo Desktop) -->
-            <div class="hidden md:block bg-slate-50/80 backdrop-blur-md border-t border-slate-100">
-                <div class="max-w-7xl mx-auto px-4">
-                    <nav class="flex space-x-1 py-2 overflow-x-auto no-scrollbar" aria-label="Tabs">
-                        <button onclick="window.switchTab('dashboard')" id="desk-tab-dashboard" class="desk-tab active-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
-                            <i class="fa-solid fa-chart-pie"></i> Panel
-                        </button>
-                        <button onclick="window.switchTab('recetas')" id="desk-tab-recetas" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
-                            <i class="fa-solid fa-book-open"></i> Recetario (<span id="count-recetas">0</span>)
-                        </button>
-                        <button onclick="window.switchTab('despensa')" id="desk-tab-despensa" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
-                            <i class="fa-solid fa-kitchen-set"></i> Mi Despensa (<span id="count-despensa">0</span>)
-                        </button>
-                        <button onclick="window.switchTab('planificador')" id="desk-tab-planificador" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
-                            <i class="fa-solid fa-calendar-day"></i> Plan Semanal
-                        </button>
-                        <button onclick="window.switchTab('compras')" id="desk-tab-compras" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
-                            <i class="fa-solid fa-basket-shopping"></i> Lista Compra (<span id="count-compras">0</span>)
-                        </button>
-                    </nav>
-                </div>
-            </div>
+            <button onclick="window.logoutUsuario()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                <i class="fa-solid fa-user"></i>
+            </button>
         </header>
 
-        <!-- Barra de Navegación Inferior (Solo Móvil) -->
-        <div class="md:hidden glass-nav fixed bottom-0 left-0 right-0 border-t border-slate-200 z-40 pb-safe shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-            <nav class="flex justify-around items-center px-1 pb-1 pt-2">
-                <button onclick="window.switchTab('dashboard')" id="mob-tab-dashboard" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1">
-                    <i class="fa-solid fa-chart-pie text-xl mb-1 transition-transform"></i>
-                    <span class="text-[10px] font-bold">Panel</span>
-                </button>
-                <button onclick="window.switchTab('recetas')" id="mob-tab-recetas" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1">
-                    <i class="fa-solid fa-book-open text-xl mb-1 transition-transform"></i>
-                    <span class="text-[10px] font-bold">Recetas</span>
-                </button>
-                <button onclick="window.switchTab('planificador')" id="mob-tab-planificador" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1 -mt-4">
-                    <div class="bg-brand-500 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-brand-500/30 mb-1 border-4 border-white">
-                        <i class="fa-solid fa-calendar-day text-xl"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-slate-600">Plan</span>
-                </button>
-                <button onclick="window.switchTab('despensa')" id="mob-tab-despensa" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1">
-                    <i class="fa-solid fa-kitchen-set text-xl mb-1 transition-transform"></i>
-                    <span class="text-[10px] font-bold">Despensa</span>
-                </button>
-                <button onclick="window.switchTab('compras')" id="mob-tab-compras" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1 relative">
-                    <div class="relative">
-                        <i class="fa-solid fa-basket-shopping text-xl mb-1 transition-transform"></i>
-                        <span id="mob-badge-compras" class="absolute -top-1.5 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">0</span>
-                    </div>
-                    <span class="text-[10px] font-bold">Compra</span>
-                </button>
-            </nav>
-        </div>
-
-        <!-- Contenido Principal -->
-        <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-4 md:py-8 overflow-x-hidden">
-
-            <!-- PESTAÑA 1: DASHBOARD -->
-            <section id="tab-dashboard" class="tab-content block space-y-6">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div onclick="window.switchTab('recetas')" class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform">
-                        <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-3">
-                            <i class="fa-solid fa-bowl-food text-2xl"></i>
+        <!-- Contenedor Principal (Scrolleable) -->
+        <main class="flex-1 overflow-y-auto overflow-x-hidden relative" id="main-content">
+            
+            <!-- Vista: Dashboard -->
+            <div id="view-dashboard" class="p-5 space-y-6">
+                <!-- Resumen -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div onclick="window.switchTab('compras')" class="bg-brand-50 p-4 rounded-3xl border border-brand-100 cursor-pointer hover:bg-brand-100 transition-colors">
+                        <div class="w-10 h-10 rounded-full bg-white text-brand-600 flex items-center justify-center shadow-sm mb-3">
+                            <i class="fa-solid fa-cart-shopping"></i>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-900" id="dash-recipes-count">0</h3>
-                        <p class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">Recetas</p>
+                        <h3 class="text-sm font-semibold text-slate-500 mb-1">Comprar</h3>
+                        <p class="text-2xl font-bold text-slate-900" id="dash-compras">0</p>
                     </div>
-                    <div onclick="window.switchTab('despensa')" class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform">
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-3">
-                            <i class="fa-solid fa-carrot text-2xl"></i>
+                    <div onclick="window.switchTab('despensa')" class="bg-blue-50 p-4 rounded-3xl border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors">
+                        <div class="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-sm mb-3">
+                            <i class="fa-solid fa-box-open"></i>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-900" id="dash-pantry-count">0</h3>
-                        <p class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">En Stock</p>
-                    </div>
-                    <div class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center">
-                        <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-3">
-                            <i class="fa-solid fa-fire-burner text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-black text-slate-900" id="dash-cookable-count">0</h3>
-                        <p class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">Cocinables</p>
-                    </div>
-                    <div onclick="window.switchTab('compras')" class="bg-brand-50 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-brand-100 shadow-sm flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform">
-                        <div class="w-12 h-12 bg-white text-brand-600 rounded-2xl flex items-center justify-center mb-3 shadow-sm">
-                            <i class="fa-solid fa-cart-shopping text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-black text-brand-900" id="dash-shopping-count">0</h3>
-                        <p class="text-[10px] md:text-xs text-brand-700 font-bold uppercase tracking-wider mt-1">A Comprar</p>
+                        <h3 class="text-sm font-semibold text-slate-500 mb-1">Despensa</h3>
+                        <p class="text-2xl font-bold text-slate-900" id="dash-despensa">0</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6">
-                    <!-- Sugerencia inteligente del chef -->
-                    <div class="bg-slate-900 rounded-[2rem] p-6 md:p-8 text-white relative overflow-hidden shadow-lg flex flex-col justify-between min-h-[280px]">
-                        <div class="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
-                            <i class="fa-solid fa-utensils text-[12rem] md:text-[16rem]"></i>
-                        </div>
-                        <div class="relative z-10 space-y-4 flex-grow">
-                            <span class="bg-white/10 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-white/10 backdrop-blur-sm inline-block">💡 Idea del chef</span>
-                            <div class="space-y-2 mt-4">
-                                <h2 class="text-3xl md:text-5xl font-black tracking-tight leading-tight" id="suggestion-title">Cargando...</h2>
-                                <p class="text-slate-300 text-sm max-w-2xl leading-relaxed line-clamp-2" id="suggestion-ingredients-preview"></p>
+                <!-- Hoy en el Menú -->
+                <div>
+                    <div class="flex justify-between items-end mb-4">
+                        <h2 class="text-lg font-bold text-slate-900">Hoy en el Menú</h2>
+                        <button onclick="window.switchTab('menu')" class="text-brand-600 text-sm font-semibold hover:underline">Ver semana</button>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4" id="dash-menu-hoy">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 mb-4">Acciones Rápidas</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="window.openAddIngredientModal()" class="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors text-left group">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
+                                <i class="fa-solid fa-plus"></i>
                             </div>
-                        </div>
-                        <div class="relative z-10 pt-6 mt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div id="suggestion-badge" class="w-full sm:w-auto text-center sm:text-left"></div>
-                            <div class="flex gap-2 w-full sm:w-auto">
-                                <button onclick="window.obtenerSugerencia()" class="flex-1 sm:flex-none bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-3 md:py-3.5 rounded-2xl text-sm transition-colors flex items-center justify-center gap-2 backdrop-blur-md active:scale-95">
-                                    <i class="fa-solid fa-shuffle"></i> Otra
-                                </button>
-                                <button id="btn-add-suggestion-plan" class="flex-1 sm:flex-none bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-3 md:py-3.5 rounded-2xl text-sm shadow transition-colors flex items-center justify-center gap-2 active:scale-95">
-                                    <i class="fa-solid fa-calendar-plus"></i> Al Plan
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- PESTAÑA 2: RECETARIO -->
-            <section id="tab-recetas" class="tab-content hidden space-y-6">
-                <!-- Botón Flotante (Solo Móvil) -->
-                <button onclick="window.openRecipeModal()" class="md:hidden fixed bottom-24 right-5 bg-brand-600 text-white w-14 h-14 rounded-full shadow-[0_8px_25px_rgba(22,163,74,0.5)] flex items-center justify-center z-[50] active:scale-90 transition-transform">
-                    <i class="fa-solid fa-plus text-2xl"></i>
-                </button>
-
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Recetario</h2>
-                        <p class="text-sm text-slate-500">Tus platos habituales listos para planificar.</p>
-                    </div>
-                    <!-- Botón normal (Solo Escritorio) -->
-                    <button onclick="window.openRecipeModal()" class="hidden md:flex w-full md:w-auto bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 md:py-3 rounded-2xl shadow-lg shadow-brand-600/20 text-base md:text-sm items-center justify-center gap-2 transition-transform active:scale-95">
-                        <i class="fa-solid fa-plus text-lg"></i> Nueva Receta
-                    </button>
-                </div>
-
-                <!-- Buscador y filtro -->
-                <div class="bg-white p-2 md:p-3 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-2">
-                    <div class="relative w-full">
-                        <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 text-lg md:text-base"></i>
-                        <input type="text" id="search-recipes" oninput="window.renderRecetasTab()" placeholder="Buscar receta o ingrediente..." autocomplete="off" class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-base md:text-sm transition-all">
-                    </div>
-                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                        <button onclick="window.filterRecipeType('todos')" id="filter-type-todos" class="recipe-filter-btn active-filter px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all">Todos</button>
-                        <button onclick="window.filterRecipeType('Almuerzo')" id="filter-type-almuerzo" class="recipe-filter-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 whitespace-nowrap transition-all">Almuerzos</button>
-                        <button onclick="window.filterRecipeType('Cena')" id="filter-type-cena" class="recipe-filter-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 whitespace-nowrap transition-all">Cenas</button>
-                    </div>
-                </div>
-
-                <!-- Listado Principal de Recetas -->
-                <div id="recetas-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-                    <!-- Se rellena dinámicamente -->
-                </div>
-            </section>
-
-            <!-- PESTAÑA 3: MI DESPENSA -->
-            <section id="tab-despensa" class="tab-content hidden space-y-6">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Despensa</h2>
-                        <p class="text-sm text-slate-500">Solo se muestran los productos con existencias.</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <!-- Añadir rápido -->
-                    <div class="lg:col-span-1 space-y-4">
-                        <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-lg relative overflow-hidden">
-                            <div class="absolute -right-6 -bottom-6 opacity-10">
-                                <i class="fa-solid fa-box text-[10rem]"></i>
-                            </div>
-                            <h3 class="font-black text-white text-xl mb-1 relative z-10">Añadir Stock</h3>
-                            <p class="text-xs text-slate-400 mb-5 relative z-10">Actualiza o crea un ingrediente</p>
-                            
-                            <form onsubmit="window.addPantryItemQuick(event)" class="space-y-4 relative z-10">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Ingrediente</label>
-                                    <!-- Autocomplete añadido aquí -->
-                                    <input type="text" id="pantry-add-name" required list="pantry-items-datalist" autocomplete="off" placeholder="Ej. Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
-                                </div>
-                                <div class="flex gap-3">
-                                    <div class="w-1/3">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Cant.</label>
-                                        <input type="number" id="pantry-add-qty" required min="0.1" step="any" value="1" class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm text-center">
-                                    </div>
-                                    <div class="w-2/3 flex items-end">
-                                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-base md:text-sm transition-colors active:scale-95">
-                                            Guardar
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- Categorías -->
-                        <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm flex overflow-x-auto no-scrollbar lg:flex-wrap lg:p-4 gap-2" id="categories-list">
-                            <!-- Dinámico -->
-                        </div>
-                    </div>
-
-                    <!-- Tarjetas de Ingredientes en Stock -->
-                    <div class="lg:col-span-3">
-                        <div id="pantry-cards-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                            <!-- Dinámico -->
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- PESTAÑA 4: PLAN SEMANAL -->
-            <section id="tab-planificador" class="tab-content hidden space-y-6">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Plan Semanal</h2>
-                        <p class="text-sm text-slate-500">Organiza tus comidas para generar la lista de la compra.</p>
-                    </div>
-                    <button onclick="window.limpiarPlan()" class="w-full md:w-auto bg-white border border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50 font-bold px-6 py-4 md:py-3 rounded-2xl text-base md:text-sm transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-sm">
-                        <i class="fa-solid fa-trash-can text-lg"></i> Vaciar Plan
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="plan-days-grid">
-                    <!-- Dinámico -->
-                </div>
-            </section>
-
-            <!-- PESTAÑA 5: LISTA DE COMPRA -->
-            <section id="tab-compras" class="tab-content hidden space-y-6">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Lista de Compra</h2>
-                        <p class="text-sm text-slate-500">Lo que necesitas comprar según tu plan y stock.</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="window.copiarListaAlPortapapeles()" class="flex-1 md:flex-none bg-white border border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 font-bold px-4 py-4 md:py-3 rounded-2xl text-base md:text-sm transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-copy text-lg"></i> <span class="hidden sm:inline">Copiar</span>
+                            <span class="font-semibold text-slate-700 text-sm">Nuevo Ingrediente</span>
                         </button>
-                        <button onclick="window.completarCompra()" id="btn-completar-compra" class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 md:py-3 rounded-2xl shadow-lg shadow-brand-600/20 text-base md:text-sm flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
-                            <i class="fa-solid fa-check-double text-lg"></i> Completar Compra
+                        <button onclick="window.openAddRecipeModal()" class="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors text-left group">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <span class="font-semibold text-slate-700 text-sm">Crear Receta</span>
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Añadir items extra -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-lg relative overflow-hidden sticky top-24">
-                            <div class="absolute -right-6 -bottom-6 opacity-10">
-                                <i class="fa-solid fa-cart-plus text-[10rem]"></i>
-                            </div>
-                            <h3 class="font-black text-white text-xl mb-1 relative z-10">Añadir Extra / Ingrediente</h3>
-                            <p class="text-xs text-slate-400 mb-5 relative z-10">Cosas que no están en el menú</p>
-                            
-                            <form onsubmit="window.addExtraShoppingItem(event)" class="space-y-4 relative z-10">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Producto o Ingrediente</label>
-                                    <!-- Autocomplete añadido aquí -->
-                                    <input type="text" id="extra-item-name" required list="extra-items-historial" autocomplete="off" placeholder="Ej. Champú, Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
-                                </div>
-                                <div class="flex gap-3">
-                                    <div class="w-1/3">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Cant.</label>
-                                        <input type="number" id="extra-item-qty" required min="1" step="1" value="1" class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm text-center">
-                                    </div>
-                                    <div class="w-2/3 flex items-end">
-                                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-base md:text-sm transition-colors active:scale-95">
-                                            Añadir
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
+            <!-- Vista: Despensa -->
+            <div id="view-despensa" class="hidden p-5 space-y-4">
+                <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2" id="despensa-categories">
+                    <!-- Categorías generadas por JS -->
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-pantry" placeholder="Buscar en despensa..." class="w-full bg-slate-100 border-none rounded-2xl py-3 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all" oninput="window.renderPantry()">
+                </div>
+                <div class="space-y-3 pb-24" id="despensa-list">
+                    <!-- Ingredientes generados por JS -->
+                </div>
+                
+                <button onclick="window.openAddIngredientModal()" class="fixed bottom-24 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg shadow-brand-500/40 flex items-center justify-center text-xl hover:bg-brand-700 hover:scale-105 transition-all z-20">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+
+            <!-- Vista: Recetas -->
+            <div id="view-recetas" class="hidden p-5 space-y-4">
+                <div class="flex gap-2">
+                    <button onclick="window.filterRecipes('todos')" id="filter-rec-todos" class="flex-1 py-2 px-4 rounded-xl font-semibold text-sm transition-colors bg-slate-800 text-white shadow-md">Todas</button>
+                    <button onclick="window.filterRecipes('almuerzo')" id="filter-rec-almuerzo" class="flex-1 py-2 px-4 rounded-xl font-semibold text-sm transition-colors bg-slate-100 text-slate-700 hover:bg-slate-200">Almuerzos</button>
+                    <button onclick="window.filterRecipes('cena')" id="filter-rec-cena" class="flex-1 py-2 px-4 rounded-xl font-semibold text-sm transition-colors bg-slate-100 text-slate-700 hover:bg-slate-200">Cenas</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-24" id="recetas-list">
+                    <!-- Recetas generadas por JS -->
+                </div>
+
+                <button onclick="window.openAddRecipeModal()" class="fixed bottom-24 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg shadow-brand-500/40 flex items-center justify-center text-xl hover:bg-brand-700 hover:scale-105 transition-all z-20">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+
+            <!-- Vista: Menú Semanal -->
+            <div id="view-menu" class="hidden p-5 space-y-6 pb-24">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-bold text-slate-800">Planificador</h2>
+                    <button onclick="window.generarListaCompra()" class="text-sm font-bold text-brand-600 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-calculator"></i> Calcular Compra
+                    </button>
+                </div>
+                <div class="space-y-4" id="menu-list">
+                    <!-- Menú generado por JS -->
+                </div>
+            </div>
+
+            <!-- Vista: Lista de la Compra -->
+            <div id="view-compras" class="hidden p-5 space-y-6 pb-24">
+                <div class="bg-brand-50 border border-brand-200 rounded-2xl p-4 flex gap-4 items-start">
+                    <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 mt-1">
+                        <i class="fa-solid fa-info-circle"></i>
                     </div>
-
-                    <!-- Lista Consolidada -->
-                    <div class="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-4 md:p-6">
-                        <h3 class="font-black text-slate-900 text-xl mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
-                            <div class="bg-brand-50 text-brand-600 w-10 h-10 rounded-xl flex items-center justify-center">
-                                <i class="fa-solid fa-clipboard-list"></i>
-                            </div>
-                            Para Comprar
-                        </h3>
-                        <div id="shopping-list-container" class="space-y-6">
-                            <!-- Dinámico -->
-                        </div>
+                    <div>
+                        <h3 class="font-bold text-brand-900 text-sm">Lista Inteligente</h3>
+                        <p class="text-xs text-brand-700 mt-1">Esta lista se genera calculando lo que necesitas para el menú semanal menos lo que ya tienes en la despensa.</p>
                     </div>
                 </div>
-            </section>
+
+                <div>
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Necesario para el Menú</h2>
+                    <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden divide-y divide-slate-100" id="lista-compra-calculada">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-3">
+                        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Artículos Extra</h2>
+                        <button onclick="window.clearListaExtra()" class="text-xs font-bold text-red-500 hover:underline">Vaciar Extras</button>
+                    </div>
+                    <form onsubmit="event.preventDefault(); window.addExtraItem();" class="flex gap-2 mb-3">
+                        <input type="text" id="input-extra" placeholder="Añadir papel, jabón..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-brand-500 focus:bg-white" autocomplete="off">
+                        <button type="submit" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold shadow-sm hover:bg-slate-700"><i class="fa-solid fa-plus"></i></button>
+                    </form>
+                    <!-- Sugerencias de historial extra -->
+                    <div class="flex flex-wrap gap-2 mb-4" id="historial-extra-list">
+                        <!-- Generado por JS -->
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden divide-y divide-slate-100" id="lista-compra-extra">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="window.comprarMarcados()" class="w-full bg-brand-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2 hover:bg-brand-700 active:scale-95 transition-all">
+                        <i class="fa-solid fa-check-double"></i> Mover Marcados a Despensa
+                    </button>
+                </div>
+            </div>
 
         </main>
+
+        <nav class="bg-white border-t border-slate-200 flex justify-between px-2 pt-2 bottom-nav-safe z-10 sticky bottom-0">
+            <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="flex-1 flex flex-col items-center py-2 text-brand-600 transition-colors">
+                <i class="fa-solid fa-house text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Inicio</span>
+            </button>
+            <button onclick="window.switchTab('despensa')" id="nav-despensa" class="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fa-solid fa-box-open text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Despensa</span>
+            </button>
+            <button onclick="window.switchTab('recetas')" id="nav-recetas" class="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fa-solid fa-book-open text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Recetas</span>
+            </button>
+            <button onclick="window.switchTab('menu')" id="nav-menu" class="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fa-solid fa-calendar-day text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Menú</span>
+            </button>
+            <button onclick="window.switchTab('compras')" id="nav-compras" class="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-slate-600 transition-colors relative">
+                <div id="badge-compra" class="absolute top-1 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white hidden"></div>
+                <i class="fa-solid fa-cart-shopping text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Comprar</span>
+            </button>
+        </nav>
     </div>
 
-    <!-- Notificaciones flotantes -->
-    <div id="toast-container" class="fixed top-4 md:bottom-4 md:top-auto left-4 right-4 md:left-auto z-[70] flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- DATALISTS (Movidos fuera de las pestañas ocultas para compatibilidad total con móviles) -->
-    <datalist id="pantry-items-datalist"></datalist>
-    <datalist id="extra-items-historial"></datalist>
-
-    <!-- Modal: Receta (Crear/Editar) -->
-    <div id="modal-recipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4 transition-opacity">
-        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-2xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-transform translate-y-full md:translate-y-0" id="modal-recipe-content">
-            <div class="flex items-center justify-between p-5 md:p-6 border-b border-slate-100 bg-slate-50/50">
-                <h3 class="text-xl font-black text-slate-900" id="modal-recipe-title">Nueva Receta</h3>
-                <button onclick="window.closeRecipeModal()" class="text-slate-400 hover:text-slate-700 w-10 h-10 rounded-full hover:bg-slate-200/50 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            <form id="recipe-form" onsubmit="window.saveRecipe(event)" class="overflow-y-auto p-5 md:p-6 space-y-6 custom-scrollbar pb-safe">
-                <input type="hidden" id="recipe-edit-index" value="">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nombre de la Receta *</label>
-                        <input type="text" id="recipe-name" required placeholder="Ej. Lasaña" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm font-semibold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tipo</label>
-                        <select id="recipe-type" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm font-semibold">
-                            <option value="Almuerzo">Almuerzo</option>
-                            <option value="Cena">Cena</option>
-                            <option value="Ambos">Ambos</option>
-                            <option value="Desayuno">Desayuno/Snack</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="space-y-3">
-                    <label class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <span>Ingredientes *</span>
-                        <button type="button" onclick="window.addRecipeIngredientRow()" class="text-brand-600 hover:text-brand-700 font-extrabold flex items-center gap-1.5 bg-brand-50 px-3 py-2 rounded-lg active:scale-95">
-                            <i class="fa-solid fa-plus text-lg"></i> Añadir
-                        </button>
-                    </label>
-                    <div id="recipe-ingredients-rows" class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-100"></div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Instrucciones</label>
-                    <textarea id="recipe-instructions" rows="4" placeholder="1. Picar la cebolla..." class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm resize-none custom-scrollbar"></textarea>
-                </div>
-                <div class="pt-4 mt-2 border-t border-slate-100 flex flex-col-reverse md:flex-row justify-end gap-3 pb-4">
-                    <button type="button" onclick="window.closeRecipeModal()" class="w-full md:w-auto px-6 py-4 md:py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-2xl font-bold text-base md:text-sm transition-all">Cancelar</button>
-                    <button type="submit" class="w-full md:w-auto px-6 py-4 md:py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-base md:text-sm shadow-lg shadow-brand-600/20 transition-all">Guardar Receta</button>
-                </div>
-            </form>
-        </div>
+    <!-- Modal: Mensaje del Sistema -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-full shadow-lg font-bold text-sm transform transition-all duration-300 opacity-0 -translate-y-10 flex items-center gap-2 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-info-circle"></i>
+        <span id="toast-msg">Mensaje</span>
     </div>
 
-    <!-- Modal: Detalle de Receta (Lectura) -->
-    <div id="modal-recipe-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
-        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col pb-safe">
-            <div class="relative bg-slate-900 p-6 md:p-8 text-white">
-                <button onclick="window.closeRecipeDetailModal()" class="absolute top-4 right-4 bg-white/10 hover:bg-white/20 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-                <span id="detail-recipe-type" class="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-white/20 rounded-full backdrop-blur-sm mb-3 inline-block">Cena</span>
-                <h2 id="detail-recipe-name" class="text-3xl font-black mb-2 tracking-tight">Nombre</h2>
+    <!-- Modal: Confirmación -->
+    <div id="confirm-modal" class="fixed inset-0 modal-overlay z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform scale-95 transition-transform" id="confirm-box">
+            <div class="p-6 text-center">
+                <div id="confirm-icon-bg" class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i id="confirm-icon" class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2" id="confirm-title">¿Estás seguro?</h3>
+                <p class="text-slate-500 text-sm" id="confirm-text">Esta acción no se puede deshacer.</p>
             </div>
-            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar bg-slate-50 flex-grow grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Ingredientes</h4>
-                    <ul id="detail-recipe-ingredients" class="space-y-2"></ul>
-                </div>
-                <div>
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Pasos</h4>
-                    <div id="detail-recipe-instructions" class="text-base md:text-sm text-slate-700 whitespace-pre-wrap leading-relaxed"></div>
-                </div>
+            <div class="p-4 bg-slate-50 flex gap-3">
+                <button onclick="window.closeConfirm()" class="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50">Cancelar</button>
+                <button id="confirm-btn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm shadow-md hover:bg-red-700">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Ingrediente -->
-    <div id="modal-ingredient" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
-        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-lg p-5 md:p-6 shadow-2xl border border-slate-100 max-h-[95vh] overflow-y-auto custom-scrollbar pb-safe">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-black text-slate-900" id="modal-ingredient-title">Añadir</h3>
-                <button onclick="window.closeIngredientModal()" class="text-slate-400 hover:text-slate-600 w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+    <!-- Modal: Añadir/Editar Ingrediente -->
+    <div id="modal-ingrediente" class="fixed inset-0 modal-overlay z-50 hidden flex flex-col justify-end md:justify-center md:items-center">
+        <div class="bg-white w-full md:max-w-md md:rounded-3xl rounded-t-3xl h-[85vh] md:h-auto flex flex-col animate-slide-up shadow-2xl">
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg text-slate-800" id="modal-ing-title">Añadir a Despensa</h3>
+                <button onclick="window.closeModal('modal-ingrediente')" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
             </div>
-            
-            <form id="ingredient-form" onsubmit="window.saveIngredient(event)" class="space-y-5">
-                <input type="hidden" id="ingredient-edit-key" value="">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nombre *</label>
-                        <input type="text" id="ingredient-name" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm font-semibold">
+            <div class="p-5 overflow-y-auto flex-1 space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nombre del Artículo</label>
+                    <input type="text" id="ing-nombre" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 focus:bg-white font-semibold text-slate-800 placeholder-slate-400" placeholder="Ej. Patatas, Aceite, Sal...">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Cantidad Actual</label>
+                        <input type="number" id="ing-qty" min="0" step="0.1" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 font-bold text-slate-800" value="0">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Categoría</label>
-                        <select id="ingredient-category" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Unidad</label>
-                        <select id="ingredient-unit" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Unidad</label>
+                        <select id="ing-unit" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 font-semibold text-slate-800">
                             <option value="uds">Unidades (uds)</option>
                             <option value="g">Gramos (g)</option>
                             <option value="ml">Mililitros (ml)</option>
                         </select>
                     </div>
                 </div>
-                <div class="bg-emerald-50/50 p-4 md:p-5 rounded-2xl border border-emerald-100/50 grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                            <i class="fa-solid fa-box-open"></i> Stock Casa
-                        </label>
-                        <input type="number" id="ingredient-qty" step="any" min="0" value="0" class="w-full px-4 py-3.5 bg-white border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base md:text-sm font-bold text-center">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1.5">Formato Compra</label>
-                        <input type="number" id="ingredient-format" step="any" min="0.1" value="1" class="w-full px-4 py-3.5 bg-white border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base md:text-sm text-center">
-                    </div>
-                </div>
-                <div class="pt-4 flex flex-col-reverse md:flex-row justify-end gap-3 pb-2">
-                    <button type="button" onclick="window.closeIngredientModal()" class="w-full md:w-auto px-6 py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base md:text-sm transition-all">Cancelar</button>
-                    <button type="submit" class="w-full md:w-auto px-6 py-4 md:py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-base md:text-sm shadow-lg transition-all active:scale-95">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Confirm Personalizado (Botones Corregidos) -->
-    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[80] flex items-center justify-center hidden p-4 transition-opacity">
-        <div class="bg-white rounded-[2rem] max-w-sm w-full p-6 md:p-8 shadow-2xl border border-slate-100 text-center transform transition-transform scale-95" id="modal-confirm-content">
-            <div id="confirm-icon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4"></div>
-            <h3 id="confirm-title" class="text-2xl font-black text-slate-900 mb-2"></h3>
-            <p id="confirm-msg" class="text-base text-slate-500 mb-8 whitespace-pre-wrap leading-relaxed"></p>
-            <div class="flex flex-col md:flex-row gap-3">
-                <button id="btn-confirm-cancel" class="w-full py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition-all active:scale-95 order-2 md:order-1">Cancelar</button>
-                <button id="btn-confirm-ok" class="w-full py-4 md:py-3 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95 order-1 md:order-2"></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Seleccionar Receta -->
-    <div id="modal-select-recipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
-        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-md shadow-2xl border border-slate-100 flex flex-col h-[80vh] md:max-h-[85vh] overflow-hidden pb-safe">
-            <div class="flex items-center justify-between p-5 md:p-6 border-b border-slate-100 bg-slate-50/50">
                 <div>
-                    <h3 class="text-xl font-black text-slate-900">Elegir Plato</h3>
-                    <p id="modal-select-title-context" class="text-xs font-bold text-brand-600 uppercase tracking-widest mt-1"></p>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Categoría</label>
+                    <select id="ing-cat" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 font-semibold text-slate-800">
+                        <!-- Opciones generadas en JS -->
+                    </select>
                 </div>
-                <button onclick="window.closeSelectRecipeModal()" class="text-slate-400 hover:text-slate-700 w-10 h-10 rounded-full hover:bg-slate-200/50 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            <div class="p-4 border-b border-slate-100 bg-white">
-                <div class="relative">
-                    <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 text-lg md:text-base"></i>
-                    <input type="text" id="select-recipe-search" oninput="window.filterSelectRecipeList()" placeholder="Buscar receta..." class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base transition-all">
+                <div class="bg-brand-50 p-4 rounded-2xl border border-brand-100">
+                    <label class="block text-xs font-bold text-brand-800 uppercase tracking-widest mb-2"><i class="fa-solid fa-bag-shopping mr-1"></i> Formato de Compra</label>
+                    <p class="text-xs text-brand-600 mb-3">¿Cuánto compras habitualmente cuando vas al súper?</p>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="ing-compra" min="0.1" step="0.1" class="w-24 px-3 py-2 bg-white border border-brand-200 rounded-lg focus:outline-none font-bold text-slate-800 text-center" value="1">
+                        <span class="text-sm font-semibold text-brand-700" id="ing-compra-unit">uds</span>
+                    </div>
                 </div>
             </div>
-            <div id="select-recipe-list" class="overflow-y-auto p-4 space-y-3 custom-scrollbar flex-grow bg-slate-50/30"></div>
+            <div class="p-5 border-t border-slate-100 shrink-0 bg-white md:rounded-b-3xl flex gap-3">
+                <button type="button" id="btn-delete-ing" onclick="window.borrarIngrediente()" class="hidden px-4 py-3 bg-red-100 text-red-600 rounded-xl font-bold hover:bg-red-200 transition-colors"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="window.saveIngredient()" class="flex-1 bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-slate-700 transition-all active:scale-95 text-base">Guardar en Despensa</button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal Asignar Receta a Día -->
-    <div id="modal-pick-slot" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
-        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-sm p-6 md:p-8 shadow-2xl border border-slate-100 pb-safe">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-[2rem] flex items-center justify-center text-3xl mx-auto mb-4 border border-brand-100">
-                    <i class="fa-solid fa-calendar-plus"></i>
-                </div>
-                <h3 class="text-2xl font-black text-slate-900 mb-2">Añadir al Plan</h3>
-                <p id="pick-slot-recipe-name" class="text-sm font-bold text-brand-700 bg-brand-50 inline-block px-4 py-2 rounded-xl"></p>
+    <!-- Modal: Añadir/Editar Receta -->
+    <div id="modal-receta" class="fixed inset-0 modal-overlay z-50 hidden flex flex-col justify-end md:justify-center md:items-center">
+        <div class="bg-white w-full md:max-w-xl md:rounded-3xl rounded-t-3xl h-[90vh] md:h-[85vh] flex flex-col animate-slide-up shadow-2xl">
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg text-slate-800" id="modal-rec-title">Nueva Receta</h3>
+                <button onclick="window.closeModal('modal-receta')" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
             </div>
-            <div class="space-y-5">
+            <div class="p-5 overflow-y-auto flex-1 space-y-6">
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Día</label>
-                    <select id="pick-slot-day" class="w-full px-4 py-4 md:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base font-semibold">
+                    <input type="text" id="rec-nombre" class="w-full px-0 py-2 border-b-2 border-slate-200 focus:border-brand-500 focus:outline-none text-2xl font-extrabold text-slate-800 placeholder-slate-300 bg-transparent" placeholder="Nombre de la receta...">
+                </div>
+                
+                <div class="flex gap-2">
+                    <button type="button" onclick="window.selectRecType('Almuerzo')" id="btn-tipo-almuerzo" class="flex-1 py-2 rounded-xl border-2 border-brand-500 bg-brand-50 text-brand-700 font-bold text-sm transition-all"><i class="fa-regular fa-sun mr-1"></i> Almuerzo</button>
+                    <button type="button" onclick="window.selectRecType('Cena')" id="btn-tipo-cena" class="flex-1 py-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold text-sm transition-all hover:border-slate-300"><i class="fa-regular fa-moon mr-1"></i> Cena</button>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Ingredientes Necesarios</label>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                        <div id="rec-ing-list" class="space-y-2">
+                            <!-- Ingredientes de la receta por JS -->
+                        </div>
+                        
+                        <div class="pt-2 border-t border-slate-200 flex flex-col sm:flex-row gap-2">
+                            <select id="rec-ing-select" class="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:border-brand-500">
+                                <!-- Opciones despensa JS -->
+                            </select>
+                            <div class="flex gap-2">
+                                <input type="number" id="rec-ing-qty" min="0.1" step="0.1" placeholder="Cant." class="w-20 px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-center font-bold focus:outline-none focus:border-brand-500">
+                                <span id="rec-ing-unit-label" class="inline-flex items-center text-xs font-bold text-slate-400 w-8">--</span>
+                                <button type="button" onclick="window.addIngToRecipe()" class="w-10 h-10 shrink-0 bg-slate-800 text-white rounded-lg flex items-center justify-center hover:bg-slate-700"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Instrucciones (Opcional)</label>
+                    <textarea id="rec-inst" rows="4" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-500 font-medium text-sm text-slate-700 resize-none" placeholder="Pasos para preparar este plato..."></textarea>
+                </div>
+            </div>
+            
+            <div class="p-5 border-t border-slate-100 shrink-0 bg-white md:rounded-b-3xl flex gap-3">
+                <button type="button" id="btn-delete-receta" onclick="window.borrarReceta()" class="hidden px-4 py-3 bg-red-100 text-red-600 rounded-xl font-bold hover:bg-red-200 transition-colors"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="window.saveRecipe()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-brand-700 transition-all active:scale-95 text-base">Guardar Receta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Elegir Receta para Menú -->
+    <div id="modal-pick" class="fixed inset-0 modal-overlay z-50 hidden flex flex-col justify-end md:justify-center md:items-center">
+        <div class="bg-white w-full md:max-w-md md:rounded-3xl rounded-t-3xl h-[80vh] md:h-[70vh] flex flex-col animate-slide-up shadow-2xl">
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg text-slate-800">Elegir para <span id="pick-day-label" class="capitalize text-brand-600">Lunes</span></h3>
+                <button onclick="window.closeModal('modal-pick')" class="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="p-4 shrink-0 bg-slate-50 border-b border-slate-200">
+                 <div class="relative">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-pick" placeholder="Buscar receta..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:outline-none focus:border-brand-500" oninput="window.renderPickList()">
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2" id="pick-list">
+                <!-- Lista para elegir generada por JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Añadir al Menú desde Receta -->
+    <div id="modal-add-to-menu" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform scale-95 transition-transform" id="add-menu-box">
+            <div class="px-6 py-5 border-b border-slate-100">
+                <h3 class="font-bold text-lg text-slate-900" id="add-menu-title">Añadir Receta</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Día de la semana</label>
+                    <select id="pick-slot-day" class="w-full px-4 py-4 md:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base font-semibold text-slate-800">
                         <option value="lunes">Lunes</option>
                         <option value="martes">Martes</option>
                         <option value="miercoles">Miércoles</option>
@@ -554,23 +403,22 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Momento</label>
-                    <select id="pick-slot-meal" class="w-full px-4 py-4 md:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base font-semibold">
+                    <select id="pick-slot-meal" class="w-full px-4 py-4 md:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base font-semibold text-slate-800">
                         <option value="almuerzo">Almuerzo</option>
                         <option value="cena">Cena</option>
                     </select>
                 </div>
             </div>
-            <div class="pt-8 flex flex-col-reverse md:flex-row gap-3">
-                <button onclick="window.closePickSlotModal()" class="w-full py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition-all active:scale-95">Cancelar</button>
-                <button onclick="window.confirmPickSlot()" class="w-full py-4 md:py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95">Guardar</button>
+            <div class="px-6 py-5 flex flex-col-reverse md:flex-row gap-3 bg-slate-50">
+                <button onclick="window.closePickSlotModal()" class="w-full py-4 md:py-3 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-2xl font-bold text-base transition-all shadow-sm">Cancelar</button>
+                <button onclick="window.confirmPickSlot()" class="w-full py-4 md:py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-base shadow-lg transition-all">Guardar</button>
             </div>
         </div>
     </div>
 
-    <!-- LOGICA FIREBASE Y APLICACIÓN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let app, auth, db;
@@ -581,7 +429,7 @@
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 firebaseConfig = JSON.parse(__firebase_config);
             } else {
-                // TU_CONFIGURACION_DE_FIREBASE
+                // Config fallback para entorno local sin variables inyectadas
                 firebaseConfig = {
   					apiKey: "AIzaSyCoWNsMvHHdaINMtoOI-GdV9fs79of7Fqk",
   					authDomain: "gastroplan-6bbad.firebaseapp.com",
@@ -597,14 +445,14 @@
             db = getFirestore(app);
         } catch (error) {
             console.error("Error Crítico de Inicialización:", error);
-            document.getElementById('login-loading').innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Error Crítico: ${error.message}. Verifica que hayas rellenado tus credenciales reales de Firebase en el archivo index.html.</span>`;
+            document.getElementById('login-loading').innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Error de conexión DB.</span>`;
             document.getElementById('login-loading').classList.remove('hidden');
         }
 
         let currentUserId = null;
         let unsubscribeSnapshot = null;
-        let isGuestMode = localStorage.getItem('gastroplan_guest') === 'true';
 
+        // Estado en memoria de la App
         let appDB = null;
         let activeTab = 'dashboard';
         let recipeFilterType = 'todos';
@@ -640,44 +488,24 @@
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         window.loginWithGoogle = () => {
-            if (!auth) return alert("Firebase no está bien inicializado. Comprueba tu configuración de Firebase.");
+            if (!auth) return showToast("Firebase no inicializado", "error");
             
             const loading = document.getElementById('login-loading');
             loading.classList.remove('hidden');
-            loading.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Abriendo ventana de Google...';
+            loading.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Conectando...';
             
             const provider = new GoogleAuthProvider();
             signInWithPopup(auth, provider)
-                .then((result) => {
-                    loading.classList.add('hidden');
-                    showToast("Sesión iniciada con éxito", "success");
-                })
+                .then(() => { loading.classList.add('hidden'); })
                 .catch(error => {
                     loading.classList.add('hidden');
-                    console.error("Error de autenticación:", error);
-                    showToast("Error de acceso: " + error.message, "error");
+                    console.error("Auth error:", error);
+                    showToast("Error al iniciar sesión", "error");
                 });
         };
 
-        window.loginAsGuest = () => {
-            localStorage.setItem('gastroplan_guest', 'true');
-            isGuestMode = true;
-            document.getElementById('login-container').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-            document.getElementById('app-container').classList.add('flex');
-            initDataListener();
-            showToast("Iniciado en Modo Local (Tus datos se guardan en el navegador)", "info");
-        };
-
         window.logoutUsuario = () => {
-            customConfirm("Cerrar Sesión", "¿Estás seguro de que quieres salir de tu cuenta?", () => {
-                if (isGuestMode) {
-                    localStorage.removeItem('gastroplan_guest');
-                    window.location.reload();
-                } else {
-                    signOut(auth);
-                }
-            }, "bg-brand-600", "fa-arrow-right-from-bracket");
+            customConfirm("Cerrar Sesión", "¿Quieres salir de la cuenta conectada?", () => { signOut(auth); }, "bg-slate-800", "fa-door-open");
         };
 
         const initAuthEnv = async () => {
@@ -687,14 +515,7 @@
         };
         initAuthEnv();
 
-        if (isGuestMode) {
-            setTimeout(() => {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                document.getElementById('app-container').classList.add('flex');
-                initDataListener();
-            }, 50);
-        } else if (auth) {
+        if (auth) {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUserId = user.uid;
@@ -712,587 +533,880 @@
             });
         }
 
-        // --- SISTEMA DE DATOS EN LA NUBE ---
-        function getDocRef() {
-            return doc(db, 'artifacts', appId, 'users', currentUserId, 'gastroplan', 'estado');
+        // --- SISTEMA DE DATOS MULTIUSUARIO (COMPARTIDO) ---
+        // CLAVE: Todos leen y escriben en la colección "public/data", no en su user personal.
+        function getSharedDocRef() {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'gastroplan');
         }
 
         function initDataListener() {
-            if (isGuestMode) {
-                const localData = localStorage.getItem('gastroplan_data');
-                if (localData) {
-                    appDB = JSON.parse(localData);
-                    if (!appDB.categorias) appDB.categorias = SEED_DATA.categorias;
-                    if (!appDB.listaExtra) appDB.listaExtra = [];
-                    if (!appDB.historialExtra) appDB.historialExtra = SEED_DATA.historialExtra;
-                    if (!appDB.planSemanal || !appDB.planSemanal.lunes) appDB.planSemanal = JSON.parse(JSON.stringify(SEED_DATA.planSemanal));
-                } else {
-                    appDB = JSON.parse(JSON.stringify(SEED_DATA));
-                    window.saveState();
-                }
-                actualizarUI();
-                return;
-            }
-
-            const docRef = getDocRef();
+            const docRef = getSharedDocRef();
             unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
                 if (docSnap.exists()) {
                     appDB = docSnap.data();
+                    // Migraciones por si faltan campos
                     if (!appDB.categorias) appDB.categorias = SEED_DATA.categorias;
                     if (!appDB.listaExtra) appDB.listaExtra = [];
                     if (!appDB.historialExtra) appDB.historialExtra = SEED_DATA.historialExtra;
                     if (!appDB.planSemanal || !appDB.planSemanal.lunes) appDB.planSemanal = JSON.parse(JSON.stringify(SEED_DATA.planSemanal));
                     actualizarUI();
                 } else {
+                    // Inicializar base de datos compartida la primera vez
                     appDB = JSON.parse(JSON.stringify(SEED_DATA));
                     window.saveState();
                 }
             }, (error) => {
-                console.error("Error de sincronización con Firestore:", error);
-                showToast("Error conectando con la nube. Comprueba tu conexión.", "error");
+                console.error("Error Firestore Sync:", error);
+                showToast("Desconectado de la base de datos.", "error");
             });
         }
 
         window.saveState = () => {
-            if (isGuestMode) {
-                localStorage.setItem('gastroplan_data', JSON.stringify(appDB));
-                return;
-            }
             if (!currentUserId || !appDB) return;
-            setDoc(getDocRef(), appDB).catch(e => {
+            setDoc(getSharedDocRef(), appDB).catch(e => {
                 console.error("Firestore Save Error:", e);
-                showToast("Error al guardar los datos en la nube.", "error");
+                showToast("Error al sincronizar cambios.", "error");
             });
-        };
-
-        // --- LOGICA DE LA APLICACIÓN ---
-        window.reiniciarApp = () => {
-            customConfirm("Restablecer de fábrica", "¿Borrar todos tus datos y volver al estado inicial? Esta acción no se puede deshacer.", () => {
-                appDB = JSON.parse(JSON.stringify(SEED_DATA));
-                checkedItems = {};
-                window.saveState();
-                showToast("Datos restablecidos.", "info");
-                window.switchTab('dashboard');
-            }, "bg-red-600", "fa-triangle-exclamation", "bg-red-100 text-red-600");
-        };
-
-        function checkRecipeCocinable(receta) {
-            let totalReq = Object.keys(receta.ingredientes).length;
-            if (totalReq === 0) return { porcentaje: 100, faltantes: [], correctos: 0, total: 0 };
-            let correctos = 0; let faltantes = [];
-            for (const [ingReq, cantReq] of Object.entries(receta.ingredientes)) {
-                let despInfo = appDB.despensa[ingReq];
-                if (despInfo && despInfo.qty >= cantReq) correctos++;
-                else faltantes.push({ nombre: ingReq, falta: parseFloat((cantReq - (despInfo ? despInfo.qty : 0)).toFixed(2)), unit: despInfo ? despInfo.unit : '' });
-            }
-            return { porcentaje: (correctos / totalReq) * 100, faltantes, correctos, total: totalReq };
-        }
-
-        window.switchTab = (tabId) => {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.desk-tab').forEach(btn => {
-                btn.classList.remove('active-tab', 'font-bold', 'text-brand-700', 'bg-brand-50');
-                btn.classList.add('font-medium', 'text-slate-600');
-            });
-            document.querySelectorAll('.mob-tab').forEach(btn => {
-                btn.classList.remove('text-brand-600'); btn.classList.add('text-slate-400');
-            });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const activeDeskBtn = document.getElementById(`desk-tab-${tabId}`);
-            if (activeDeskBtn) {
-                activeDeskBtn.classList.remove('text-slate-600', 'font-medium');
-                activeDeskBtn.classList.add('active-tab', 'font-bold', 'text-brand-700', 'bg-brand-50');
-            }
-            const activeMobBtn = document.getElementById(`mob-tab-${tabId}`);
-            if (activeMobBtn) {
-                activeMobBtn.classList.remove('text-slate-400'); activeMobBtn.classList.add('text-brand-600');
-            }
-            activeTab = tabId;
-            window.scrollTo({top: 0, behavior: 'smooth'});
-            actualizarUI();
         };
 
         function actualizarUI() {
             if(!appDB) return;
-            populateDatalist();
-            populatePantryDatalist();
+            renderPantry();
+            renderRecipes();
+            renderMenu();
+            renderDashboard();
+            updatePantryCatDropdown();
+            if (activeTab === 'compras') window.generarListaCompra(false); // Update without changing tab if already there
+        }
 
-            document.getElementById('count-recetas').innerText = appDB.recetas.length;
-            document.getElementById('count-despensa').innerText = Object.values(appDB.despensa).filter(i => i.qty > 0).length;
-            
-            let itemsToBuy = appDB.listaExtra.length;
-            let reqs = {};
-            for (let day of DIAS_SEMANA) {
-                ['almuerzo', 'cena'].forEach(meal => {
-                    let rName = appDB.planSemanal[day][meal];
-                    if (rName) {
-                        let r = appDB.recetas.find(x => x.nombre === rName);
-                        if(r) Object.entries(r.ingredientes).forEach(([i,c]) => reqs[i] = (reqs[i]||0) + c);
-                    }
-                });
-            }
-            Object.entries(reqs).forEach(([i,c]) => {
-                let disp = appDB.despensa[i] ? appDB.despensa[i].qty : 0;
-                if(disp < c) itemsToBuy++;
+        window.switchTab = (tabId) => {
+            activeTab = tabId;
+            ['dashboard', 'despensa', 'recetas', 'menu', 'compras'].forEach(id => {
+                document.getElementById(`view-${id}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${id}`);
+                navBtn.classList.remove('text-brand-600');
+                navBtn.classList.add('text-slate-400');
+                if(id !== 'dashboard') navBtn.querySelector('i').classList.remove('text-xl');
             });
             
-            document.getElementById('count-compras').innerText = itemsToBuy;
-            
-            const badge = document.getElementById('mob-badge-compras');
-            if (itemsToBuy > 0) { badge.innerText = itemsToBuy > 9 ? '9+' : itemsToBuy; badge.classList.remove('hidden'); } 
-            else badge.classList.add('hidden');
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeNavBtn = document.getElementById(`nav-${tabId}`);
+            activeNavBtn.classList.remove('text-slate-400');
+            activeNavBtn.classList.add('text-brand-600');
+            if(tabId !== 'dashboard') activeNavBtn.querySelector('i').classList.add('text-xl', 'animate-slide-up');
 
-            if (activeTab === 'dashboard') { renderDashboard(); window.obtenerSugerencia(); }
-            else if (activeTab === 'recetas') window.renderRecetasTab();
-            else if (activeTab === 'despensa') window.renderPantryTab();
-            else if (activeTab === 'planificador') window.renderPlanificadorTab();
-            else if (activeTab === 'compras') window.renderComprasTab();
+            const titles = { 'dashboard': 'Dashboard', 'despensa': 'Mi Despensa', 'recetas': 'Recetario', 'menu': 'Plan Semanal', 'compras': 'Lista Compra' };
+            document.getElementById('header-title').innerText = titles[tabId];
+            
+            if(tabId === 'compras') window.generarListaCompra();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+
+        // --- UI Utils ---
+        let toastTimeout;
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msg = document.getElementById('toast-msg');
+            
+            clearTimeout(toastTimeout);
+            
+            toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-full shadow-lg font-bold text-sm transform transition-all duration-300 flex items-center gap-2 text-white';
+            
+            if (type === 'success') { toast.classList.add('bg-brand-600'); icon.className = 'fa-solid fa-circle-check'; } 
+            else if (type === 'error') { toast.classList.add('bg-red-600'); icon.className = 'fa-solid fa-circle-exclamation'; } 
+            else { toast.classList.add('bg-slate-800'); icon.className = 'fa-solid fa-info-circle'; }
+
+            msg.innerText = message;
+            toast.classList.remove('opacity-0', '-translate-y-10');
+            
+            toastTimeout = setTimeout(() => { toast.classList.add('opacity-0', '-translate-y-10'); }, 3000);
         }
+
+        window.closeModal = (modalId) => {
+            const modal = document.getElementById(modalId);
+            const content = modal.firstElementChild;
+            content.classList.remove('animate-slide-up');
+            content.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                content.style.transform = '';
+                content.classList.add('animate-slide-up');
+            }, 250);
+        };
+
+        let confirmCallback = null;
+        function customConfirm(title, text, callback, btnColorClass = 'bg-red-600', iconClass = 'fa-triangle-exclamation') {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-text').innerText = text;
+            
+            const btn = document.getElementById('confirm-btn');
+            btn.className = `flex-1 py-3 text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 ${btnColorClass}`;
+            
+            const iconBg = document.getElementById('confirm-icon-bg');
+            if(btnColorClass.includes('red')) iconBg.className = 'w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 text-2xl';
+            else iconBg.className = 'w-16 h-16 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center mx-auto mb-4 text-2xl';
+            
+            document.getElementById('confirm-icon').className = `fa-solid ${iconClass}`;
+            
+            confirmCallback = callback;
+            const modal = document.getElementById('confirm-modal');
+            const box = document.getElementById('confirm-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); }, 10);
+        }
+
+        window.closeConfirm = () => {
+            const modal = document.getElementById('confirm-modal');
+            const box = document.getElementById('confirm-box');
+            modal.classList.add('opacity-0'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); confirmCallback = null; }, 200);
+        };
+
+        document.getElementById('confirm-btn').addEventListener('click', () => {
+            if(confirmCallback) confirmCallback();
+            window.closeConfirm();
+        });
+
 
         function renderDashboard() {
-            document.getElementById('dash-recipes-count').innerText = appDB.recetas.length;
-            document.getElementById('dash-pantry-count').innerText = Object.values(appDB.despensa).filter(i => i.qty > 0).length;
-            document.getElementById('dash-shopping-count').innerText = document.getElementById('count-compras').innerText;
-            let cookableCount = appDB.recetas.filter(r => checkRecipeCocinable(r).porcentaje === 100).length;
-            document.getElementById('dash-cookable-count').innerText = cookableCount;
+            if(!appDB) return;
+            const keys = Object.keys(appDB.despensa);
+            document.getElementById('dash-despensa').innerText = keys.length;
+            
+            const bajas = keys.filter(k => appDB.despensa[k].qty <= (appDB.despensa[k].formatoCompra * 0.2));
+            document.getElementById('dash-compras').innerText = bajas.length;
+
+            const hoyKey = DIAS_SEMANA[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+            const menuHoy = appDB.planSemanal[hoyKey];
+            
+            let html = '';
+            if(!menuHoy.almuerzo && !menuHoy.cena) {
+                html = `<div class="text-center py-4 text-slate-400"><i class="fa-regular fa-calendar-xmark text-3xl mb-2"></i><p class="text-sm font-semibold">Nada planeado para hoy</p></div>`;
+            } else {
+                if(menuHoy.almuerzo) html += renderDashMeal('Almuerzo', menuHoy.almuerzo, 'fa-sun', 'text-amber-500');
+                if(menuHoy.almuerzo && menuHoy.cena) html += '<div class="h-px bg-slate-100 w-full my-2"></div>';
+                if(menuHoy.cena) html += renderDashMeal('Cena', menuHoy.cena, 'fa-moon', 'text-indigo-500');
+            }
+            document.getElementById('dash-menu-hoy').innerHTML = html;
         }
 
-        let sugerenciaActual = null;
-        window.obtenerSugerencia = () => {
-            if (!appDB || appDB.recetas.length === 0) return;
-            sugerenciaActual = appDB.recetas[Math.floor(Math.random() * appDB.recetas.length)];
-            document.getElementById('suggestion-title').innerText = sugerenciaActual.nombre;
-            document.getElementById('suggestion-ingredients-preview').innerText = Object.keys(sugerenciaActual.ingredientes).join(' • ');
+        function renderDashMeal(tipo, recetaName, iconClass, colorClass) {
+            return `
+                <div class="flex items-center gap-4 cursor-pointer hover:bg-slate-50 p-2 rounded-xl transition-colors" onclick="window.switchTab('menu')">
+                    <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 ${colorClass}">
+                        <i class="fa-solid ${iconClass}"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">${tipo}</p>
+                        <p class="font-bold text-slate-800">${recetaName}</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right ml-auto text-slate-300 text-sm"></i>
+                </div>`;
+        }
+
+        function updatePantryCatDropdown() {
+            const select = document.getElementById('ing-cat');
+            select.innerHTML = appDB.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        window.renderPantry = () => {
+            if(!appDB) return;
+            const searchTerm = document.getElementById('search-pantry').value.toLowerCase();
             
-            const check = checkRecipeCocinable(sugerenciaActual);
-            const badge = document.getElementById('suggestion-badge');
-            if (check.porcentaje === 100) badge.innerHTML = `<span class="bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-xl font-bold text-xs"><i class="fa-solid fa-check mr-1"></i> Stock completo</span>`;
-            else badge.innerHTML = `<span class="bg-amber-500/20 text-amber-300 px-4 py-2 rounded-xl font-bold text-xs"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Faltan ${check.faltantes.length} ing.</span>`;
-
-            document.getElementById('btn-add-suggestion-plan').onclick = () => window.openPickSlotModal(sugerenciaActual.nombre);
-        };
-
-        window.filterRecipeType = (type) => {
-            recipeFilterType = type;
-            document.querySelectorAll('.recipe-filter-btn').forEach(btn => {
-                btn.className = "recipe-filter-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 whitespace-nowrap transition-all";
+            // Categorias
+            let catsHtml = `<button onclick="window.setPantryCat('Todos')" class="px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${pantryActiveCategory === 'Todos' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">Todos</button>`;
+            appDB.categorias.forEach(cat => {
+                const count = Object.values(appDB.despensa).filter(i => i.category === cat).length;
+                if(count > 0 || pantryActiveCategory === cat) {
+                    catsHtml += `<button onclick="window.setPantryCat('${cat}')" class="px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${pantryActiveCategory === cat ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">${cat} <span class="ml-1 opacity-60 text-xs font-normal">(${count})</span></button>`;
+                }
             });
-            document.getElementById(`filter-type-${type.toLowerCase()}`).className = "recipe-filter-btn active-filter px-5 py-2.5 rounded-xl text-sm font-bold bg-brand-600 text-white whitespace-nowrap shadow-md transition-all";
-            window.renderRecetasTab();
-        };
+            document.getElementById('despensa-categories').innerHTML = catsHtml;
 
-        window.renderRecetasTab = () => {
-            const searchVal = document.getElementById('search-recipes').value.toLowerCase();
-            const grid = document.getElementById('recetas-grid');
-            let query = appDB.recetas;
-            if (recipeFilterType !== 'todos') query = query.filter(r => r.tipo === recipeFilterType || r.tipo === 'Ambos');
-            if (searchVal) query = query.filter(r => r.nombre.toLowerCase().includes(searchVal) || Object.keys(r.ingredientes).some(i => i.toLowerCase().includes(searchVal)));
+            // Lista
+            const list = document.getElementById('despensa-list');
+            let items = Object.entries(appDB.despensa);
+            
+            if(pantryActiveCategory !== 'Todos') items = items.filter(([_, data]) => data.category === pantryActiveCategory);
+            if(searchTerm) items = items.filter(([name, _]) => name.toLowerCase().includes(searchTerm));
 
-            if (query.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 text-lg">No hay recetas que coincidan.</div>`;
+            // Ordenar alfabéticamente
+            items.sort((a,b) => a[0].localeCompare(b[0]));
+
+            if (items.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-slate-400"><i class="fa-solid fa-box-open text-4xl mb-3 opacity-50"></i><p class="font-medium">No hay ingredientes aquí.</p></div>`;
                 return;
             }
 
-            grid.innerHTML = query.map(receta => {
-                const idx = appDB.recetas.findIndex(r => r.nombre === receta.nombre);
-                const check = checkRecipeCocinable(receta);
+            list.innerHTML = items.map(([name, data]) => {
+                const pct = data.formatoCompra > 0 ? Math.min(100, (data.qty / data.formatoCompra) * 100) : 0;
+                let barColor = pct > 50 ? 'bg-brand-500' : (pct > 20 ? 'bg-amber-400' : 'bg-red-500');
+                if(data.qty === 0) barColor = 'bg-slate-200';
+
                 return `
-                <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col active:scale-95 transition-transform group">
-                    <div class="p-6 flex-grow cursor-pointer" onclick="window.openRecipeDetail(${idx})">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg inline-block mb-3">${receta.tipo}</span>
-                        <h3 class="font-black text-slate-900 text-xl leading-tight group-hover:text-brand-600 transition-colors">${receta.nombre}</h3>
-                    </div>
-                    <div class="px-6 py-4 border-t border-slate-50 bg-slate-50/50 flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-xs font-bold ${check.porcentaje===100 ? 'text-emerald-600' : 'text-amber-500'} bg-white px-3 py-1.5 rounded-xl shadow-sm">
-                            <i class="fa-solid ${check.porcentaje===100 ? 'fa-check-circle' : 'fa-circle-half-stroke'}"></i>
-                            ${check.correctos}/${check.total} Ing.
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onclick="window.openEditIngredient('${name}')">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-end mb-1">
+                            <h4 class="font-bold text-slate-800 truncate pr-2">${name}</h4>
+                            <span class="font-bold text-slate-600 shrink-0 text-sm bg-slate-100 px-2 py-0.5 rounded-md">${formatQty(data.qty)} ${data.unit}</span>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="window.openRecipeModal(${idx}); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-brand-600 rounded-xl shadow-sm border border-slate-100 transition-colors active:scale-95"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="window.deleteRecipe(${idx}); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-red-500 rounded-xl shadow-sm border border-slate-100 transition-colors active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
+                        <p class="text-xs text-slate-400 mb-2 truncate">${data.category}</p>
+                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
                         </div>
                     </div>
                 </div>`;
             }).join('');
         };
 
-        window.openRecipeModal = (index) => {
-            const isEdit = typeof index === 'number' && index >= 0;
-            const container = document.getElementById('recipe-ingredients-rows');
-            container.innerHTML = '';
-            const modal = document.getElementById('modal-recipe');
-            const content = document.getElementById('modal-recipe-content');
+        window.setPantryCat = (cat) => { pantryActiveCategory = cat; renderPantry(); };
+
+        let editingIngredient = null;
+        window.openAddIngredientModal = () => {
+            editingIngredient = null;
+            document.getElementById('modal-ing-title').innerText = 'Añadir a Despensa';
+            document.getElementById('ing-nombre').value = '';
+            document.getElementById('ing-qty').value = '0';
+            document.getElementById('ing-compra').value = '1';
+            document.getElementById('btn-delete-ing').classList.add('hidden');
+            document.getElementById('ing-nombre').disabled = false;
+            document.getElementById('ing-nombre').classList.remove('opacity-50', 'bg-slate-100');
             
-            if (!isEdit) {
-                document.getElementById('modal-recipe-title').innerText = "Nueva Receta";
-                document.getElementById('recipe-form').reset();
-                document.getElementById('recipe-edit-index').value = "";
-                window.addRecipeIngredientRow(); 
-            } else {
-                document.getElementById('modal-recipe-title').innerText = "Editar Receta";
-                const r = appDB.recetas[index];
-                document.getElementById('recipe-edit-index').value = index;
-                document.getElementById('recipe-name').value = r.nombre;
-                document.getElementById('recipe-type').value = r.tipo;
-                document.getElementById('recipe-instructions').value = r.instrucciones || "";
-                Object.entries(r.ingredientes).forEach(([ing, cant]) => window.addRecipeIngredientRow(ing, cant));
+            document.getElementById('modal-ingrediente').classList.remove('hidden');
+        };
+
+        window.openEditIngredient = (name) => {
+            editingIngredient = name;
+            const data = appDB.despensa[name];
+            document.getElementById('modal-ing-title').innerText = 'Editar Ingrediente';
+            document.getElementById('ing-nombre').value = name;
+            document.getElementById('ing-nombre').disabled = true; // No permitir cambiar nombre para no romper enlaces
+            document.getElementById('ing-nombre').classList.add('opacity-50', 'bg-slate-100');
+            document.getElementById('ing-qty').value = data.qty;
+            document.getElementById('ing-unit').value = data.unit;
+            document.getElementById('ing-cat').value = data.category;
+            document.getElementById('ing-compra').value = data.formatoCompra;
+            
+            document.getElementById('ing-compra-unit').innerText = data.unit;
+            document.getElementById('btn-delete-ing').classList.remove('hidden');
+            
+            document.getElementById('modal-ingrediente').classList.remove('hidden');
+        };
+
+        document.getElementById('ing-unit').addEventListener('change', (e) => {
+            document.getElementById('ing-compra-unit').innerText = e.target.value;
+        });
+
+        window.saveIngredient = () => {
+            const name = document.getElementById('ing-nombre').value.trim();
+            if(!name) return showToast('Ponle un nombre al ingrediente', 'error');
+
+            const isNew = !editingIngredient;
+            const finalName = isNew ? name : editingIngredient;
+
+            if(isNew && appDB.despensa[finalName]) return showToast('Ese ingrediente ya existe', 'error');
+
+            appDB.despensa[finalName] = {
+                qty: parseFloat(document.getElementById('ing-qty').value) || 0,
+                unit: document.getElementById('ing-unit').value,
+                category: document.getElementById('ing-cat').value,
+                formatoCompra: parseFloat(document.getElementById('ing-compra').value) || 1
+            };
+
+            saveState();
+            closeModal('modal-ingrediente');
+            showToast(isNew ? 'Ingrediente añadido' : 'Ingrediente actualizado', 'success');
+        };
+
+        window.borrarIngrediente = () => {
+            if(!editingIngredient) return;
+            customConfirm("Borrar Ingrediente", `¿Eliminar '${editingIngredient}' de tu despensa? Esto afectará a las recetas que lo usen.`, () => {
+                delete appDB.despensa[editingIngredient];
+                saveState();
+                closeModal('modal-ingrediente');
+                showToast('Ingrediente eliminado', 'success');
+            });
+        };
+
+        let editingRecipe = null;
+        let tempRecIngredients = {};
+        let tempRecType = 'Almuerzo';
+
+        window.filterRecipes = (tipo) => {
+            recipeFilterType = tipo;
+            ['todos', 'almuerzo', 'cena'].forEach(t => {
+                const btn = document.getElementById(`filter-rec-${t}`);
+                if(t === tipo) { btn.classList.replace('bg-slate-100', 'bg-slate-800'); btn.classList.replace('text-slate-700', 'text-white'); }
+                else { btn.classList.replace('bg-slate-800', 'bg-slate-100'); btn.classList.replace('text-white', 'text-slate-700'); }
+            });
+            renderRecipes();
+        };
+
+        window.renderRecipes = () => {
+            if(!appDB) return;
+            const list = document.getElementById('recetas-list');
+            let filtradas = appDB.recetas;
+            
+            if(recipeFilterType !== 'todos') {
+                filtradas = appDB.recetas.filter(r => r.tipo.toLowerCase() === recipeFilterType);
             }
+
+            if(filtradas.length === 0) {
+                list.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400"><i class="fa-solid fa-utensils text-4xl mb-3 opacity-50"></i><p class="font-medium">No tienes recetas de este tipo.</p></div>`;
+                return;
+            }
+
+            list.innerHTML = filtradas.map((r, index) => {
+                const totalIng = Object.keys(r.ingredientes).length;
+                let disponibles = 0;
+                Object.entries(r.ingredientes).forEach(([ing, needQty]) => {
+                    if(appDB.despensa[ing] && appDB.despensa[ing].qty >= needQty) disponibles++;
+                });
+                
+                const puedeHacerse = disponibles === totalIng && totalIng > 0;
+                const badge = puedeHacerse ? 
+                    `<span class="absolute top-3 right-3 bg-brand-100 text-brand-700 text-[10px] font-extrabold px-2 py-1 rounded-md shadow-sm"><i class="fa-solid fa-check mr-1"></i>Puedes cocinarlo</span>` : '';
+
+                return `
+                <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                    ${badge}
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full ${r.tipo==='Almuerzo'?'bg-amber-100 text-amber-600':'bg-indigo-100 text-indigo-600'} flex items-center justify-center font-bold">
+                            <i class="fa-solid ${r.tipo==='Almuerzo'?'fa-sun':'fa-moon'}"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-lg flex-1 truncate pr-20">${r.nombre}</h4>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-4">
+                        <i class="fa-solid fa-basket-shopping"></i> ${disponibles}/${totalIng} ingredientes
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.openAddMenuFromReceta('${r.nombre}')" class="flex-1 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 py-2 rounded-xl font-bold text-sm transition-colors">Añadir al Menú</button>
+                        <button onclick="window.openEditRecipe('${r.nombre}')" class="w-10 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl flex items-center justify-center transition-colors"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        // Formulario Recetas
+        window.openAddRecipeModal = () => {
+            editingRecipe = null;
+            tempRecIngredients = {};
+            document.getElementById('modal-rec-title').innerText = 'Nueva Receta';
+            document.getElementById('rec-nombre').value = '';
+            document.getElementById('rec-inst').value = '';
+            document.getElementById('btn-delete-receta').classList.add('hidden');
+            window.selectRecType('Almuerzo');
+            updateRecIngSelect();
+            renderTempIngList();
+            document.getElementById('modal-receta').classList.remove('hidden');
+        };
+
+        window.openEditRecipe = (name) => {
+            const receta = appDB.recetas.find(r => r.nombre === name);
+            if(!receta) return;
+            editingRecipe = name;
+            tempRecIngredients = { ...receta.ingredientes };
             
-            modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('translate-y-full', 'scale-95'); }, 10);
+            document.getElementById('modal-rec-title').innerText = 'Editar Receta';
+            document.getElementById('rec-nombre').value = receta.nombre;
+            document.getElementById('rec-inst').value = receta.instrucciones || '';
+            document.getElementById('btn-delete-receta').classList.remove('hidden');
+            window.selectRecType(receta.tipo);
+            updateRecIngSelect();
+            renderTempIngList();
+            document.getElementById('modal-receta').classList.remove('hidden');
         };
 
-        window.closeRecipeModal = () => { 
-            const modal = document.getElementById('modal-recipe');
-            const content = document.getElementById('modal-recipe-content');
-            content.classList.add('translate-y-full', 'scale-95'); 
-            modal.classList.add('opacity-0');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+        window.selectRecType = (tipo) => {
+            tempRecType = tipo;
+            const btnA = document.getElementById('btn-tipo-almuerzo');
+            const btnC = document.getElementById('btn-tipo-cena');
+            if(tipo === 'Almuerzo') {
+                btnA.className = 'flex-1 py-2 rounded-xl border-2 border-brand-500 bg-brand-50 text-brand-700 font-bold text-sm transition-all';
+                btnC.className = 'flex-1 py-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold text-sm transition-all hover:border-slate-300';
+            } else {
+                btnC.className = 'flex-1 py-2 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-sm transition-all';
+                btnA.className = 'flex-1 py-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 font-bold text-sm transition-all hover:border-slate-300';
+            }
         };
 
-        window.addRecipeIngredientRow = (ingName = '', qty = 1) => {
-            const rowId = 'row-' + Date.now() + Math.random().toString(36).substr(2, 5);
-            const opts = Object.keys(appDB.despensa).sort().map(i => `<option value="${i}" ${i===ingName?'selected':''}>${i} (${appDB.despensa[i].unit})</option>`).join('');
-            document.getElementById('recipe-ingredients-rows').insertAdjacentHTML('beforeend', `
-                <div id="${rowId}" class="flex gap-3 items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-                    <select class="ing-select flex-grow bg-transparent text-base md:text-sm font-semibold px-2 py-2 outline-none w-1/2">
-                        <option value="">Seleccionar...</option>${opts}
-                    </select>
-                    <input type="number" step="any" min="0.1" value="${qty}" class="ing-qty w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-3 text-base md:text-sm text-center font-bold outline-none focus:ring-2 focus:ring-brand-500">
-                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-red-400 hover:text-red-600 bg-red-50 w-10 h-10 rounded-xl flex items-center justify-center active:scale-95"><i class="fa-solid fa-xmark"></i></button>
+        function updateRecIngSelect() {
+            const select = document.getElementById('rec-ing-select');
+            // Solo ingredientes en despensa
+            const options = Object.keys(appDB.despensa).sort().map(k => `<option value="${k}">${k}</option>`).join('');
+            select.innerHTML = options || '<option value="">(Despensa vacía)</option>';
+            if(options) updateUnitLabel();
+        }
+
+        document.getElementById('rec-ing-select').addEventListener('change', updateUnitLabel);
+
+        function updateUnitLabel() {
+            const val = document.getElementById('rec-ing-select').value;
+            document.getElementById('rec-ing-unit-label').innerText = val && appDB.despensa[val] ? appDB.despensa[val].unit : '--';
+        }
+
+        window.addIngToRecipe = () => {
+            const ing = document.getElementById('rec-ing-select').value;
+            const qty = parseFloat(document.getElementById('rec-ing-qty').value);
+            if(!ing) return showToast('Añade primero ingredientes a tu despensa', 'error');
+            if(!qty || qty <= 0) return showToast('Introduce una cantidad válida', 'error');
+            
+            tempRecIngredients[ing] = qty;
+            document.getElementById('rec-ing-qty').value = '';
+            renderTempIngList();
+        };
+
+        window.removeIngFromRecipe = (ing) => {
+            delete tempRecIngredients[ing];
+            renderTempIngList();
+        };
+
+        function renderTempIngList() {
+            const list = document.getElementById('rec-ing-list');
+            const entries = Object.entries(tempRecIngredients);
+            if(entries.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">No hay ingredientes añadidos.</p>`;
+                return;
+            }
+            list.innerHTML = entries.map(([ing, qty]) => `
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                    <span class="font-bold text-sm text-slate-700">${ing}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-semibold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">${formatQty(qty)} ${appDB.despensa[ing]?.unit || '?'}</span>
+                        <button type="button" onclick="window.removeIngFromRecipe('${ing}')" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
+                    </div>
                 </div>
-            `);
+            `).join('');
+        }
+
+        window.saveRecipe = () => {
+            const nombre = document.getElementById('rec-nombre').value.trim();
+            if(!nombre) return showToast('La receta necesita un nombre', 'error');
+            
+            const existingIndex = appDB.recetas.findIndex(r => r.nombre.toLowerCase() === nombre.toLowerCase());
+            
+            if(!editingRecipe && existingIndex !== -1) {
+                return showToast('Ya existe una receta con este nombre', 'error');
+            }
+
+            const nueva = {
+                nombre,
+                tipo: tempRecType,
+                ingredientes: { ...tempRecIngredients },
+                instrucciones: document.getElementById('rec-inst').value.trim()
+            };
+
+            if(editingRecipe) {
+                const idx = appDB.recetas.findIndex(r => r.nombre === editingRecipe);
+                if(idx !== -1) appDB.recetas[idx] = nueva;
+                
+                // Actualizar plan semanal si el nombre cambió
+                if(nombre !== editingRecipe) {
+                    DIAS_SEMANA.forEach(dia => {
+                        if(appDB.planSemanal[dia].almuerzo === editingRecipe) appDB.planSemanal[dia].almuerzo = nombre;
+                        if(appDB.planSemanal[dia].cena === editingRecipe) appDB.planSemanal[dia].cena = nombre;
+                    });
+                }
+            } else {
+                appDB.recetas.push(nueva);
+            }
+
+            saveState();
+            closeModal('modal-receta');
+            showToast('Receta guardada', 'success');
         };
 
-        window.saveRecipe = (e) => {
-            e.preventDefault();
-            const idxStr = document.getElementById('recipe-edit-index').value;
-            const name = document.getElementById('recipe-name').value.trim();
-            if (!name) return showToast("El nombre de la receta es obligatorio", "error");
+        window.borrarReceta = () => {
+            if(!editingRecipe) return;
+            customConfirm("Borrar Receta", `¿Eliminar '${editingRecipe}' definitivamente? Se quitará de tu menú si está planeada.`, () => {
+                appDB.recetas = appDB.recetas.filter(r => r.nombre !== editingRecipe);
+                
+                // Limpiar del plan semanal
+                DIAS_SEMANA.forEach(dia => {
+                    if(appDB.planSemanal[dia].almuerzo === editingRecipe) appDB.planSemanal[dia].almuerzo = "";
+                    if(appDB.planSemanal[dia].cena === editingRecipe) appDB.planSemanal[dia].cena = "";
+                });
 
-            let ings = {};
-            Array.from(document.getElementById('recipe-ingredients-rows').children).forEach(row => {
-                const s = row.querySelector('.ing-select').value;
-                const q = parseFloat(row.querySelector('.ing-qty').value);
-                if (s && q > 0) ings[s] = q;
+                saveState();
+                closeModal('modal-receta');
+                showToast('Receta eliminada', 'success');
+            });
+        };
+
+        window.renderMenu = () => {
+            if(!appDB) return;
+            const container = document.getElementById('menu-list');
+            const hoyIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; // 0 Lunes, 6 Domingo
+
+            container.innerHTML = DIAS_SEMANA.map((dia, idx) => {
+                const esHoy = idx === hoyIndex;
+                const plan = appDB.planSemanal[dia];
+                
+                return `
+                <div class="bg-white border ${esHoy ? 'border-brand-300 ring-2 ring-brand-50' : 'border-slate-200'} rounded-3xl overflow-hidden shadow-sm">
+                    <div class="${esHoy ? 'bg-brand-50' : 'bg-slate-50'} px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-800 uppercase tracking-widest text-xs flex items-center gap-2">
+                            ${esHoy ? '<span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>' : ''}
+                            ${NOMBRES_DIAS[dia]} ${esHoy ? '<span class="text-brand-600 font-extrabold ml-1">(Hoy)</span>' : ''}
+                        </h3>
+                        <button onclick="window.limpiarDia('${dia}')" class="text-xs text-slate-400 hover:text-red-500 font-semibold" title="Limpiar día"><i class="fa-solid fa-eraser"></i></button>
+                    </div>
+                    <div class="divide-y divide-slate-100">
+                        ${renderSlot(dia, 'almuerzo', plan.almuerzo)}
+                        ${renderSlot(dia, 'cena', plan.cena)}
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        function renderSlot(dia, tipo, recetaName) {
+            const icon = tipo === 'almuerzo' ? 'fa-sun text-amber-500 bg-amber-50' : 'fa-moon text-indigo-500 bg-indigo-50';
+            const title = tipo === 'almuerzo' ? 'Almuerzo' : 'Cena';
+
+            if(!recetaName) {
+                return `
+                <div class="p-4 flex items-center justify-between group cursor-pointer hover:bg-slate-50 transition-colors" onclick="window.openPickModal('${dia}', '${tipo}')">
+                    <div class="flex items-center gap-3 opacity-50">
+                        <div class="w-8 h-8 rounded-full ${icon} flex items-center justify-center text-sm"><i class="fa-solid ${tipo==='almuerzo'?'fa-sun':'fa-moon'}"></i></div>
+                        <span class="text-sm font-semibold text-slate-500 border-b border-dashed border-slate-300 pb-0.5">Añadir ${title}...</span>
+                    </div>
+                    <i class="fa-solid fa-plus text-slate-300 group-hover:text-brand-500 transition-colors"></i>
+                </div>`;
+            }
+
+            // Comprobar si se puede hacer
+            const receta = appDB.recetas.find(r => r.nombre === recetaName);
+            let alertIcon = '';
+            if(receta) {
+                 let faltan = false;
+                 for(const [ing, qty] of Object.entries(receta.ingredientes)) {
+                     if(!appDB.despensa[ing] || appDB.despensa[ing].qty < qty) { faltan = true; break; }
+                 }
+                 if(faltan) alertIcon = `<i class="fa-solid fa-triangle-exclamation text-amber-500 text-xs ml-2" title="Faltan ingredientes en despensa"></i>`;
+            } else {
+                 alertIcon = `<i class="fa-solid fa-circle-question text-red-500 text-xs ml-2" title="Receta borrada"></i>`;
+            }
+
+            return `
+            <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="window.openPickModal('${dia}', '${tipo}')">
+                    <div class="w-8 h-8 rounded-full ${icon} flex items-center justify-center text-sm"><i class="fa-solid ${tipo==='almuerzo'?'fa-sun':'fa-moon'}"></i></div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${title}</span>
+                        <span class="text-sm font-bold text-slate-800">${recetaName} ${alertIcon}</span>
+                    </div>
+                </div>
+                <button onclick="window.quitarRecetaMenu('${dia}', '${tipo}')" class="w-8 h-8 text-slate-300 hover:text-red-500 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-times"></i></button>
+            </div>`;
+        }
+
+        let pickContext = { dia: null, tipo: null };
+        window.openPickModal = (dia, tipo) => {
+            pickContext = { dia, tipo };
+            document.getElementById('pick-day-label').innerText = `${NOMBRES_DIAS[dia]} (${tipo})`;
+            document.getElementById('search-pick').value = '';
+            window.renderPickList();
+            document.getElementById('modal-pick').classList.remove('hidden');
+        };
+
+        window.renderPickList = () => {
+            const term = document.getElementById('search-pick').value.toLowerCase();
+            const list = document.getElementById('pick-list');
+            
+            // Preferir recetas del tipo correspondiente (Almuerzo/Cena)
+            let recetas = [...appDB.recetas].sort((a,b) => {
+                const tipoMatchA = a.tipo.toLowerCase() === pickContext.tipo ? -1 : 1;
+                const tipoMatchB = b.tipo.toLowerCase() === pickContext.tipo ? -1 : 1;
+                return tipoMatchA - tipoMatchB;
             });
 
-            if (Object.keys(ings).length === 0) return showToast("Añade al menos un ingrediente", "error");
+            if(term) recetas = recetas.filter(r => r.nombre.toLowerCase().includes(term));
 
-            const data = { nombre: name, tipo: document.getElementById('recipe-type').value, ingredientes: ings, instrucciones: document.getElementById('recipe-instructions').value.trim() };
-            
-            if (idxStr === "") {
-                if (appDB.recetas.some(r => r.nombre.toLowerCase() === name.toLowerCase())) return showToast("Ya existe una receta con ese nombre", "error");
-                appDB.recetas.push(data);
-            } else { 
-                const idx = parseInt(idxStr);
-                if (appDB.recetas.some((r, i) => i !== idx && r.nombre.toLowerCase() === name.toLowerCase())) {
-                    return showToast("Ya existe una receta con ese nombre", "error");
-                }
-                appDB.recetas[idx] = data; 
+            if(recetas.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">No se encontraron recetas.</div>`;
+                return;
             }
-            window.saveState(); 
-            window.closeRecipeModal(); 
-            actualizarUI(); 
-            showToast("Receta guardada", "success");
-        };
 
-        window.deleteRecipe = (idx) => {
-            customConfirm("Eliminar Receta", "¿Estás seguro de que deseas eliminar este plato de forma permanente?", () => {
-                appDB.recetas.splice(idx, 1); window.saveState(); window.renderRecetasTab(); showToast("Receta eliminada", "info");
-            }, "bg-red-600", "fa-trash-can", "bg-red-100 text-red-600");
-        };
-
-        window.openRecipeDetail = (idx) => {
-            const r = appDB.recetas[idx];
-            document.getElementById('detail-recipe-name').innerText = r.nombre;
-            document.getElementById('detail-recipe-type').innerText = r.tipo;
-            document.getElementById('detail-recipe-ingredients').innerHTML = Object.entries(r.ingredientes).map(([ing, cant]) => {
-                let d = appDB.despensa[ing]; let disp = d ? d.qty : 0; let unit = d ? d.unit : ''; let ok = disp >= cant;
-                return `<li class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><span class="font-bold text-slate-700 flex items-center gap-3"><span class="w-8 h-8 rounded-full flex items-center justify-center ${ok ? 'bg-emerald-100 text-emerald-500' : 'bg-red-100 text-red-500'}"><i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}"></i></span>${ing}</span><span class="text-base font-black text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">${cant} <span class="text-xs font-semibold text-slate-400">${unit}</span></span></li>`;
+            list.innerHTML = recetas.map(r => {
+                const isPref = r.tipo.toLowerCase() === pickContext.tipo;
+                return `
+                <div onclick="window.selectForMenu('${r.nombre}')" class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors last:border-0">
+                    <div>
+                        <h4 class="font-bold text-slate-800">${r.nombre}</h4>
+                        <span class="text-xs font-semibold ${isPref ? 'text-brand-600' : 'text-slate-400'}">${r.tipo}</span>
+                    </div>
+                    <i class="fa-solid fa-plus text-slate-300"></i>
+                </div>`;
             }).join('');
-            document.getElementById('detail-recipe-instructions').innerText = r.instrucciones || "No se han añadido pasos de preparación.";
-            document.getElementById('modal-recipe-detail').classList.remove('hidden');
         };
-        window.closeRecipeDetailModal = () => { document.getElementById('modal-recipe-detail').classList.add('hidden'); };
 
-        window.renderPantryTab = () => {
-            document.getElementById('categories-list').innerHTML = `<button onclick="window.pantrySetCat('Todos')" class="px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all shadow-sm ${pantryActiveCategory==='Todos'?'bg-slate-800 text-white':'bg-slate-50 text-slate-600 hover:bg-slate-100'}">Todos</button>` +
-                appDB.categorias.map(c => `<button onclick="window.pantrySetCat('${c}')" class="px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all shadow-sm ${pantryActiveCategory===c?'bg-slate-800 text-white':'bg-slate-50 text-slate-600 hover:bg-slate-100'}">${c}</button>`).join('');
+        window.selectForMenu = (recetaName) => {
+            appDB.planSemanal[pickContext.dia][pickContext.tipo] = recetaName;
+            saveState();
+            closeModal('modal-pick');
+        };
 
-            let entries = Object.entries(appDB.despensa);
-            if (pantryActiveCategory !== 'Todos') entries = entries.filter(([_, info]) => info.category === pantryActiveCategory);
-            entries = entries.filter(([_, info]) => info.qty > 0);
+        window.quitarRecetaMenu = (dia, tipo) => {
+            appDB.planSemanal[dia][tipo] = "";
+            saveState();
+        };
 
-            const container = document.getElementById('pantry-cards-container');
-            if(entries.length === 0) { container.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 text-lg">No hay productos en esta categoría con stock.</div>`; return; }
+        window.limpiarDia = (dia) => {
+            customConfirm("Limpiar Día", `¿Quitar almuerzo y cena del ${NOMBRES_DIAS[dia]}?`, () => {
+                appDB.planSemanal[dia].almuerzo = "";
+                appDB.planSemanal[dia].cena = "";
+                saveState();
+            });
+        };
 
-            container.innerHTML = entries.sort((a,b)=>a[0].localeCompare(b[0])).map(([name, i]) => `
-                <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col gap-4 relative">
-                    <div class="flex justify-between items-start pr-12"><div><h4 class="font-black text-slate-800 text-xl leading-tight mb-1">${name}</h4><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md">${i.category}</span></div></div>
-                    <div class="absolute top-4 right-4"><button onclick="window.openIngredientModal('${name}')" class="w-12 h-12 text-slate-400 hover:text-brand-600 bg-slate-50 hover:bg-brand-50 rounded-2xl transition-colors flex items-center justify-center active:scale-95"><i class="fa-solid fa-pen text-lg"></i></button></div>
-                    <div class="flex justify-between items-center bg-slate-50/80 p-3 rounded-2xl mt-auto border border-slate-100/50">
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">En casa</div>
-                        <div class="flex items-center gap-3">
-                            <button onclick="window.changeStock('${name}', -1)" class="w-12 h-12 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:text-brand-600 font-black text-2xl flex items-center justify-center transition-transform active:scale-90">-</button>
-                            <div class="flex flex-col items-center w-12"><span class="text-xl font-black text-slate-900">${i.qty}</span><span class="text-[9px] font-bold text-slate-400 uppercase">${i.unit}</span></div>
-                            <button onclick="window.changeStock('${name}', 1)" class="w-12 h-12 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:text-brand-600 font-black text-2xl flex items-center justify-center transition-transform active:scale-90">+</button>
+        // Modal añadir al menú desde la vista receta
+        let recetaToAddMenu = null;
+        window.openAddMenuFromReceta = (recetaName) => {
+            recetaToAddMenu = recetaName;
+            document.getElementById('add-menu-title').innerText = `Planear: ${recetaName}`;
+            
+            // Auto-seleccionar según día actual y receta
+            const receta = appDB.recetas.find(r=>r.nombre === recetaName);
+            document.getElementById('pick-slot-meal').value = receta ? receta.tipo.toLowerCase() : 'almuerzo';
+            
+            const hoy = DIAS_SEMANA[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+            document.getElementById('pick-slot-day').value = hoy;
+
+            const modal = document.getElementById('modal-add-to-menu');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); document.getElementById('add-menu-box').classList.remove('scale-95'); }, 10);
+        };
+
+        window.closePickSlotModal = () => {
+             const modal = document.getElementById('modal-add-to-menu');
+             modal.classList.add('opacity-0'); document.getElementById('add-menu-box').classList.add('scale-95');
+             setTimeout(() => { modal.classList.add('hidden'); }, 200);
+        };
+
+        window.confirmPickSlot = () => {
+            const dia = document.getElementById('pick-slot-day').value;
+            const tipo = document.getElementById('pick-slot-meal').value;
+            
+            appDB.planSemanal[dia][tipo] = recetaToAddMenu;
+            saveState();
+            window.closePickSlotModal();
+            showToast(`Añadido al ${NOMBRES_DIAS[dia]}`, 'success');
+        };
+
+
+        window.generarListaCompra = (navigate = true) => {
+            if(!appDB) return;
+            // 1. Calcular necesidades del menú
+            const necesidades = {};
+            DIAS_SEMANA.forEach(dia => {
+                ['almuerzo', 'cena'].forEach(tipo => {
+                    const rName = appDB.planSemanal[dia][tipo];
+                    if(rName) {
+                        const receta = appDB.recetas.find(r => r.nombre === rName);
+                        if(receta) {
+                            Object.entries(receta.ingredientes).forEach(([ing, qty]) => {
+                                necesidades[ing] = (necesidades[ing] || 0) + qty;
+                            });
+                        }
+                    }
+                });
+            });
+
+            // 2. Restar lo que hay en despensa y agrupar para compra
+            const aComprarCalculado = [];
+            Object.entries(necesidades).forEach(([ing, requiredQty]) => {
+                const despensaItem = appDB.despensa[ing];
+                if(despensaItem) {
+                    const diff = requiredQty - despensaItem.qty;
+                    if(diff > 0) {
+                        // Calcular cuantos paquetes/formatos comprar
+                        const udsCompra = Math.ceil(diff / despensaItem.formatoCompra);
+                        const aComprarTotal = udsCompra * despensaItem.formatoCompra;
+                        aComprarCalculado.push({
+                            id: `calc_${ing}`, type: 'calc', name: ing, unit: despensaItem.unit, 
+                            diff: diff, aComprar: aComprarTotal, udCompra: udsCompra, formato: despensaItem.formatoCompra
+                        });
+                    }
+                } else {
+                     // Ingrediente borrado de despensa pero sigue en receta, lo pedimos genérico
+                     aComprarCalculado.push({ id: `calc_${ing}`, type: 'calc', name: ing, unit: '?', diff: requiredQty, aComprar: requiredQty, udCompra: 1, formato: requiredQty });
+                }
+            });
+
+            // Ordenar alfabéticamente
+            aComprarCalculado.sort((a,b) => a.name.localeCompare(b.name));
+
+            // Render Calculada
+            const listCalc = document.getElementById('lista-compra-calculada');
+            if(aComprarCalculado.length === 0) {
+                listCalc.innerHTML = `<div class="p-6 text-center text-slate-400 font-medium"><i class="fa-solid fa-basket-shopping text-3xl mb-2 opacity-50 block"></i>Tienes todo lo necesario para el menú.</div>`;
+            } else {
+                listCalc.innerHTML = aComprarCalculado.map(item => renderShoppingItem(item)).join('');
+            }
+
+            // Render Extra
+            const listExtra = document.getElementById('lista-compra-extra');
+            if(appDB.listaExtra.length === 0) {
+                listExtra.innerHTML = `<div class="p-4 text-center text-slate-400 text-sm font-medium">No hay artículos extra.</div>`;
+            } else {
+                listExtra.innerHTML = appDB.listaExtra.map((name, idx) => 
+                    renderShoppingItem({id: `extra_${idx}`, type: 'extra', name: name, idx: idx})
+                ).join('');
+            }
+
+            // Actualizar Badge
+            const totalComprar = aComprarCalculado.length + appDB.listaExtra.length;
+            const badge = document.getElementById('badge-compra');
+            if(totalComprar > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+
+            renderHistorialExtra();
+
+            if(navigate) window.switchTab('compras');
+        };
+
+        function renderShoppingItem(item) {
+            const isChecked = checkedItems[item.id];
+            
+            if(item.type === 'calc') {
+                return `
+                <label class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-slate-50 transition-colors ${isChecked ? 'opacity-50' : ''}">
+                    <div class="flex items-center gap-4">
+                        <div class="relative flex items-center justify-center">
+                            <input type="checkbox" class="w-6 h-6 rounded-lg border-2 border-slate-300 text-brand-600 focus:ring-brand-500 transition-all checked:border-brand-600 cursor-pointer" 
+                                ${isChecked ? 'checked' : ''} onchange="window.toggleCheck('${item.id}')">
+                        </div>
+                        <div>
+                            <span class="font-bold text-slate-800 text-base block ${isChecked ? 'line-through text-slate-500' : ''}">${item.name}</span>
+                            <span class="text-xs font-semibold text-red-500">Te faltan ${formatQty(item.diff)} ${item.unit}</span>
                         </div>
                     </div>
-                </div>
-            `).join('');
-        };
-        
-        window.pantrySetCat = (cat) => { pantryActiveCategory = cat; window.renderPantryTab(); };
-
-        window.changeStock = (name, amount) => {
-            let item = appDB.despensa[name]; if (!item) return;
-            let step = (item.unit === 'g' || item.unit === 'ml') ? 50 : 1;
-            item.qty = Math.max(0, parseFloat((item.qty + (amount * step)).toFixed(2)));
-            window.saveState(); window.renderPantryTab(); actualizarUI();
-        };
-
-        function populatePantryDatalist() {
-            const list = document.getElementById('pantry-items-datalist');
-            if (list && appDB) list.innerHTML = Object.keys(appDB.despensa).sort().map(name => `<option value="${name}">${name}</option>`).join('');
+                    <div class="flex items-center justify-between sm:justify-end gap-3 bg-brand-50 sm:bg-transparent p-2 sm:p-0 rounded-xl sm:rounded-none ml-10 sm:ml-0">
+                        <div class="text-left sm:text-right">
+                            <span class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-0.5">Comprar</span>
+                            <span class="font-extrabold text-brand-700 text-sm">${item.udCompra} x ${formatQty(item.formato)}${item.unit}</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-white sm:bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 font-black shadow-sm">+${formatQty(item.aComprar)}</div>
+                    </div>
+                </label>`;
+            } else {
+                return `
+                <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group ${isChecked ? 'opacity-50' : ''}">
+                    <label class="flex items-center gap-4 cursor-pointer flex-1">
+                         <input type="checkbox" class="w-6 h-6 rounded-lg border-2 border-slate-300 text-brand-600 focus:ring-brand-500 transition-all checked:border-brand-600 cursor-pointer" 
+                                ${isChecked ? 'checked' : ''} onchange="window.toggleCheck('${item.id}')">
+                         <span class="font-bold text-slate-800 text-base ${isChecked ? 'line-through text-slate-500' : ''}">${item.name}</span>
+                    </label>
+                    <button onclick="window.removeExtraItem(${item.idx})" class="w-8 h-8 text-slate-300 hover:text-red-500 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-trash text-sm"></i></button>
+                </div>`;
+            }
         }
 
-        window.addPantryItemQuick = (e) => {
-            e.preventDefault();
-            const name = document.getElementById('pantry-add-name').value.trim();
-            const qty = parseFloat(document.getElementById('pantry-add-qty').value) || 0;
-            if(!name || qty <= 0) return;
-            if (appDB.despensa[name]) {
-                appDB.despensa[name].qty = parseFloat((appDB.despensa[name].qty + qty).toFixed(2));
-                window.saveState();
-                document.getElementById('pantry-add-name').value = ''; document.getElementById('pantry-add-qty').value = '1';
-                actualizarUI(); showToast(`+${qty} ${appDB.despensa[name].unit} añadido a ${name}`, "success");
-            } else { window.openIngredientModal('', name, qty); }
-        };
+        window.toggleCheck = (id) => { checkedItems[id] = !checkedItems[id]; window.generarListaCompra(false); };
 
-        window.openIngredientModal = (name = '', prefilledName = '', prefilledQty = 1) => {
-            document.getElementById('ingredient-category').innerHTML = appDB.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
-            if (name) {
-                const i = appDB.despensa[name];
-                document.getElementById('modal-ingredient-title').innerText = "Editar";
-                document.getElementById('ingredient-edit-key').value = name;
-                document.getElementById('ingredient-name').value = name;
-                document.getElementById('ingredient-category').value = i.category;
-                document.getElementById('ingredient-unit').value = i.unit;
-                document.getElementById('ingredient-qty').value = i.qty;
-                document.getElementById('ingredient-format').value = i.formatoCompra || 1;
+        window.addExtraItem = (name = null) => {
+            const input = document.getElementById('input-extra');
+            const val = name || input.value.trim();
+            if(!val) return;
+            
+            if(!appDB.listaExtra.includes(val)) {
+                appDB.listaExtra.push(val);
+                
+                // Añadir al historial si no existe
+                if(!appDB.historialExtra.includes(val)) {
+                    appDB.historialExtra.unshift(val);
+                    if(appDB.historialExtra.length > 10) appDB.historialExtra.pop(); // Mantener 10
+                }
+                
+                saveState();
+                input.value = '';
+                showToast('Añadido a extras', 'success');
             } else {
-                document.getElementById('modal-ingredient-title').innerText = "Añadir a Catálogo";
-                document.getElementById('ingredient-form').reset();
-                document.getElementById('ingredient-edit-key').value = "";
-                if (prefilledName) document.getElementById('ingredient-name').value = prefilledName;
-                document.getElementById('ingredient-qty').value = prefilledQty;
+                 showToast('Ya está en la lista', 'info');
+                 input.value = '';
             }
-            document.getElementById('modal-ingredient').classList.remove('hidden');
-        };
-        window.closeIngredientModal = () => { document.getElementById('modal-ingredient').classList.add('hidden'); };
-
-        window.saveIngredient = (e) => {
-            e.preventDefault();
-            const editKey = document.getElementById('ingredient-edit-key').value;
-            const name = document.getElementById('ingredient-name').value.trim();
-            const data = { category: document.getElementById('ingredient-category').value, unit: document.getElementById('ingredient-unit').value, qty: parseFloat(document.getElementById('ingredient-qty').value) || 0, formatoCompra: parseFloat(document.getElementById('ingredient-format').value) || 1 };
-            if (editKey && editKey !== name) {
-                delete appDB.despensa[editKey];
-                appDB.recetas.forEach(r => { if(r.ingredientes[editKey]) { r.ingredientes[name] = r.ingredientes[editKey]; delete r.ingredientes[editKey]; } });
-            } else if (!editKey && appDB.despensa[name]) { return showToast("El ingrediente ya existe", "error"); }
-            appDB.despensa[name] = data;
-            window.saveState(); window.closeIngredientModal(); populatePantryDatalist(); populateDatalist();
-            document.getElementById('pantry-add-name').value = ''; document.getElementById('pantry-add-qty').value = '1';
-            actualizarUI(); showToast("Guardado", "success");
         };
 
-        window.renderPlanificadorTab = () => {
-            const grid = document.getElementById('plan-days-grid');
-            let html = '';
-            for (let day of DIAS_SEMANA) {
-                const dayName = NOMBRES_DIAS[day];
-                const almuerzo = appDB.planSemanal[day].almuerzo;
-                const cena = appDB.planSemanal[day].cena;
-                const renderSlot = (mealName, recipeName, mealType) => {
-                    if (recipeName) {
-                        return `<div><div class="text-[10px] font-black uppercase text-slate-400 mb-2 flex justify-between items-center"><span>${mealName}</span><div class="flex gap-2"><button onclick="window.cocinarRecetaSlot('${day}', '${mealType}')" class="bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors active:scale-95" title="Marcar cocinado"><i class="fa-solid fa-check"></i> <span class="text-xs font-bold">Hecho</span></button><button onclick="window.quitarDelPlan('${day}', '${mealType}')" class="bg-red-50 text-red-400 hover:bg-red-500 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors active:scale-95" title="Quitar plato"><i class="fa-solid fa-xmark"></i></button></div></div><div class="bg-brand-50 border border-brand-200 p-4 rounded-2xl shadow-sm text-base font-bold text-brand-900 group"><span class="block truncate">${recipeName}</span></div></div>`;
-                    } else {
-                        return `<div><div class="text-[10px] font-black uppercase text-slate-400 mb-2">${mealName}</div><button onclick="window.openSelectRecipeModal('${day}', '${mealType}')" class="w-full border-2 border-dashed border-slate-200 rounded-2xl p-4 text-base font-bold text-slate-400 hover:text-brand-600 hover:border-brand-400 hover:bg-brand-50 transition-colors text-left flex items-center justify-between active:scale-95 bg-white"><span>Añadir plato...</span><div class="w-8 h-8 bg-slate-50 text-slate-300 rounded-lg flex items-center justify-center"><i class="fa-solid fa-plus text-sm"></i></div></button></div>`;
+        window.removeExtraItem = (idx) => {
+            appDB.listaExtra.splice(idx, 1);
+            saveState();
+        };
+
+        window.clearListaExtra = () => {
+             if(appDB.listaExtra.length === 0) return;
+             customConfirm("Vaciar Extras", "¿Quitar todos los artículos extra de la lista?", () => {
+                 appDB.listaExtra = [];
+                 // Limpiar checked state de extras
+                 Object.keys(checkedItems).forEach(k => { if(k.startsWith('extra_')) delete checkedItems[k]; });
+                 saveState();
+             });
+        };
+
+        function renderHistorialExtra() {
+            const list = document.getElementById('historial-extra-list');
+            const filtered = appDB.historialExtra.filter(h => !appDB.listaExtra.includes(h));
+            
+            if(filtered.length === 0) { list.innerHTML = ''; return; }
+            
+            list.innerHTML = filtered.slice(0,5).map(h => 
+                `<button onclick="window.addExtraItem('${h}')" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-brand-300 hover:text-brand-600 hover:bg-brand-50 transition-colors flex items-center gap-1 shadow-sm"><i class="fa-solid fa-plus opacity-50"></i> ${h}</button>`
+            ).join('');
+        }
+
+        window.comprarMarcados = () => {
+            let procesados = 0;
+            const toRemoveExtra = [];
+
+            // Regenerar cálculo actual
+            const necesidades = {};
+            DIAS_SEMANA.forEach(dia => {
+                ['almuerzo', 'cena'].forEach(tipo => {
+                    const rName = appDB.planSemanal[dia][tipo];
+                    if(rName) {
+                        const receta = appDB.recetas.find(r => r.nombre === rName);
+                        if(receta) { Object.entries(receta.ingredientes).forEach(([ing, qty]) => { necesidades[ing] = (necesidades[ing] || 0) + qty; }); }
                     }
-                };
-                html += `<div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col"><div class="bg-slate-900 p-4 text-center"><span class="font-black text-white uppercase tracking-widest text-sm">${dayName}</span></div><div class="p-5 md:p-6 space-y-6 flex-grow bg-slate-50/30">${renderSlot('Almuerzo', almuerzo, 'almuerzo')}${renderSlot('Cena', cena, 'cena')}</div></div>`;
-            }
-            grid.innerHTML = html;
-        };
-
-        window.cocinarRecetaSlot = (day, mealType) => {
-            const rName = appDB.planSemanal[day][mealType];
-            const receta = appDB.recetas.find(r => r.nombre === rName);
-            if(!receta) return;
-            customConfirm("Plato Cocinado", `¿Confirmas que has preparado "${rName}"?\nDescontaremos los ingredientes de tu despensa.`, () => {
-                Object.entries(receta.ingredientes).forEach(([ing, cant]) => { if(appDB.despensa[ing]) appDB.despensa[ing].qty = Math.max(0, parseFloat((appDB.despensa[ing].qty - cant).toFixed(2))); });
-                appDB.planSemanal[day][mealType] = ""; window.saveState(); actualizarUI(); showToast(`¡Buen provecho! Despensa actualizada.`, "success");
-            }, "bg-emerald-600", "fa-fire-burner", "bg-emerald-100 text-emerald-600");
-        };
-
-        window.quitarDelPlan = (day, mealType) => { appDB.planSemanal[day][mealType] = ""; window.saveState(); window.renderPlanificadorTab(); actualizarUI(); };
-
-        window.limpiarPlan = () => {
-            customConfirm("Vaciar Plan", "¿Estás seguro de que quieres eliminar todos los platos de tu semana?", () => {
-                for (let day of DIAS_SEMANA) { appDB.planSemanal[day].almuerzo = ""; appDB.planSemanal[day].cena = ""; }
-                window.saveState(); window.renderPlanificadorTab(); actualizarUI(); showToast("Plan semanal vaciado", "info");
-            }, "bg-red-600", "fa-trash-can", "bg-red-100 text-red-600");
-        };
-
-        let selectingForSlot = { day: null, mealType: null };
-        window.openSelectRecipeModal = (day, mealType) => {
-            selectingForSlot = { day, mealType }; document.getElementById('select-recipe-search').value = '';
-            document.getElementById('modal-select-title-context').innerText = `${NOMBRES_DIAS[day]} - ${mealType === 'almuerzo' ? 'Almuerzo' : 'Cena'}`;
-            window.filterSelectRecipeList(); document.getElementById('modal-select-recipe').classList.remove('hidden');
-        };
-        window.closeSelectRecipeModal = () => { document.getElementById('modal-select-recipe').classList.add('hidden'); };
-
-        window.filterSelectRecipeList = () => {
-            const v = document.getElementById('select-recipe-search').value.toLowerCase();
-            const list = document.getElementById('select-recipe-list');
-            list.innerHTML = appDB.recetas.filter(r => r.nombre.toLowerCase().includes(v)).map(r => `<div onclick="window.assignRecipeToSlot('${r.nombre}')" class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl hover:border-brand-400 hover:bg-brand-50 cursor-pointer transition-all active:scale-95 shadow-sm"><div><div class="font-bold text-base text-slate-800">${r.nombre}</div><div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">${r.tipo}</div></div><div class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center"><i class="fa-solid fa-arrow-right"></i></div></div>`).join('');
-            if(list.innerHTML === '') list.innerHTML = `<div class="text-center py-8 text-slate-400 text-base">No hay resultados.</div>`;
-        };
-
-        window.assignRecipeToSlot = (recipeName) => { appDB.planSemanal[selectingForSlot.day][selectingForSlot.mealType] = recipeName; window.saveState(); window.closeSelectRecipeModal(); window.renderPlanificadorTab(); actualizarUI(); };
-
-        let assigningRecipeName = null;
-        window.openPickSlotModal = (recipeName) => { assigningRecipeName = recipeName; document.getElementById('pick-slot-recipe-name').innerText = recipeName; document.getElementById('modal-pick-slot').classList.remove('hidden'); };
-        window.closePickSlotModal = () => { document.getElementById('modal-pick-slot').classList.add('hidden'); };
-        window.confirmPickSlot = () => {
-            const day = document.getElementById('pick-slot-day').value; const meal = document.getElementById('pick-slot-meal').value;
-            appDB.planSemanal[day][meal] = assigningRecipeName; window.saveState(); window.closePickSlotModal(); actualizarUI(); showToast(`${assigningRecipeName} añadido`, "success");
-        };
-
-        window.renderComprasTab = () => {
-            let reqs = {};
-            for (let day of DIAS_SEMANA) {
-                ['almuerzo', 'cena'].forEach(meal => {
-                    let rName = appDB.planSemanal[day][meal];
-                    if (rName) { let r = appDB.recetas.find(x => x.nombre === rName); if(r) Object.entries(r.ingredientes).forEach(([i,c]) => reqs[i] = (reqs[i]||0) + c); }
                 });
-            }
+            });
 
-            let consolidadoPorCat = {};
-            Object.entries(reqs).forEach(([ing, cantReq]) => {
-                let dbInfo = appDB.despensa[ing]; let disp = dbInfo ? dbInfo.qty : 0;
-                if(disp < cantReq) {
-                    let falta = cantReq - disp; let form = (dbInfo && dbInfo.formatoCompra) ? dbInfo.formatoCompra : 1; let paquetes = Math.ceil(falta / form); let cat = dbInfo ? dbInfo.category : 'Otros';
-                    if(!consolidadoPorCat[cat]) consolidadoPorCat[cat] = [];
-                    consolidadoPorCat[cat].push({ nombre: ing, paquetes: paquetes, desc: `${paquetes} envase/s de ${form}${dbInfo?dbInfo.unit:''} (Recetas)`, qtyParaAdd: paquetes*form, isExtra: false });
+            Object.keys(checkedItems).forEach(key => {
+                if(checkedItems[key]) {
+                    if(key.startsWith('calc_')) {
+                        const ingName = key.replace('calc_', '');
+                        const despItem = appDB.despensa[ingName];
+                        if(despItem) {
+                            const diff = necesidades[ingName] - despItem.qty;
+                            const udsCompra = Math.ceil(diff / despItem.formatoCompra);
+                            const aComprarTotal = udsCompra * despItem.formatoCompra;
+                            
+                            appDB.despensa[ingName].qty += aComprarTotal;
+                            procesados++;
+                        }
+                    } else if (key.startsWith('extra_')) {
+                        const idx = parseInt(key.replace('extra_', ''));
+                        toRemoveExtra.push(appDB.listaExtra[idx]);
+                        procesados++;
+                    }
                 }
             });
 
-            appDB.listaExtra.forEach((ex) => {
-                let dbInfo = appDB.despensa[ex.nombre]; let cat = dbInfo ? dbInfo.category : 'Otros';
-                if(!consolidadoPorCat[cat]) consolidadoPorCat[cat] = [];
-                consolidadoPorCat[cat].push({ nombre: ex.nombre, paquetes: ex.qty, desc: `${ex.qty} uds (Manual)`, qtyParaAdd: ex.qty, isExtra: true });
-            });
+            if(procesados === 0) return showToast('Marca algún artículo primero', 'info');
 
-            const cont = document.getElementById('shopping-list-container');
-            const btn = document.getElementById('btn-completar-compra');
-
-            if (Object.keys(consolidadoPorCat).length === 0) {
-                cont.innerHTML = `<div class="text-center py-16 text-emerald-600 bg-emerald-50 rounded-3xl border border-emerald-100 shadow-inner"><i class="fa-solid fa-clipboard-check text-5xl mb-4"></i><br><span class="font-black text-2xl">¡Todo listo!</span><p class="text-base font-medium text-emerald-600/80 mt-2">No hay compras pendientes.</p></div>`;
-                btn.disabled = true; return;
-            }
-
-            btn.disabled = false;
-            cont.innerHTML = Object.keys(consolidadoPorCat).sort().map(cat => `
-                <div class="mb-8 last:mb-0"><h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 bg-slate-50 p-2 px-4 rounded-xl inline-flex"><i class="fa-solid fa-tag text-slate-300"></i> ${cat}</h4>
-                    <div class="space-y-3">
-                        ${consolidadoPorCat[cat].map(i => {
-                            const isChecked = checkedItems[i.nombre] ? 'checked' : '';
-                            const checkedStyle = checkedItems[i.nombre] ? 'opacity-40 line-through scale-[0.99] border-brand-200 bg-brand-50/20' : 'border-slate-100 bg-white';
-                            return `<label class="flex items-start gap-4 p-4 md:p-5 border-2 rounded-2xl cursor-pointer hover:border-brand-400 hover:shadow-md transition-all active:scale-[0.98] ${checkedStyle}"><input type="checkbox" ${isChecked} onchange="window.toggleCheckedItem('${i.nombre}', ${i.qtyParaAdd}, ${i.isExtra})" class="mt-1 w-7 h-7 md:w-6 md:h-6 text-brand-600 rounded-lg border-slate-300 focus:ring-brand-500 cursor-pointer"><div class="flex-grow"><div class="font-black text-base md:text-lg text-slate-900 flex justify-between items-center"><span class="${checkedItems[i.nombre] ? 'line-through text-slate-500' : ''}">${i.nombre}</span><span class="bg-brand-100 text-brand-700 text-xs font-black px-3 py-1 rounded-lg border border-brand-200/50">+${i.paquetes}</span></div><div class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">${i.desc}</div></div></label>`;
-                        }).join('')}
-                    </div>
-                </div>
-            `).join('');
+            // Eliminar los extra procesados
+            appDB.listaExtra = appDB.listaExtra.filter(e => !toRemoveExtra.includes(e));
+            
+            checkedItems = {}; // Limpiar marcados
+            saveState();
+            showToast(`${procesados} artículos movidos a la despensa`, 'success');
+            
+            // Si estábamos en pestaña compras, se auto-actualizará por el listener
         };
 
-        window.toggleCheckedItem = (nombre, addQty, isExtra) => { if (checkedItems[nombre]) delete checkedItems[nombre]; else checkedItems[nombre] = { qty: addQty, isExtra: isExtra }; window.renderComprasTab(); };
-
-        function populateDatalist() {
-            const list = document.getElementById('extra-items-historial');
-            if (list && appDB) list.innerHTML = Array.from(new Set([...Object.keys(appDB.despensa), ...appDB.historialExtra])).sort().map(h => `<option value="${h}">${h}</option>`).join('');
+        // Utility
+        function formatQty(num) {
+            return Number.isInteger(num) ? num : parseFloat(num.toFixed(2));
         }
 
-        window.addExtraShoppingItem = (e) => {
-            e.preventDefault();
-            const name = document.getElementById('extra-item-name').value.trim();
-            const qty = parseInt(document.getElementById('extra-item-qty').value) || 1;
-            if(!name) return;
-            appDB.listaExtra.push({nombre: name, qty: qty});
-            if(!appDB.historialExtra.includes(name)) appDB.historialExtra.push(name);
-            window.saveState(); populateDatalist(); document.getElementById('extra-item-name').value = ''; document.getElementById('extra-item-qty').value = '1'; actualizarUI(); showToast(`Añadido: ${qty} de ${name}`, "success");
-        };
-
-        window.completarCompra = () => {
-            const listKeys = Object.keys(checkedItems);
-            if (listKeys.length === 0) return showToast("Marca algún producto tachado antes de completar", "error");
-            customConfirm("Completar Compra", `¿Quieres guardar en la despensa los ${listKeys.length} productos tachados?\nSe sumarán al stock y se eliminarán de esta lista.`, () => {
-                listKeys.forEach(nombre => {
-                    const item = checkedItems[nombre];
-                    if (appDB.despensa[nombre]) appDB.despensa[nombre].qty = parseFloat((appDB.despensa[nombre].qty + item.qty).toFixed(2));
-                    else appDB.despensa[nombre] = { category: 'Otros', unit: 'uds', qty: item.qty, formatoCompra: 1 };
-                    if (item.isExtra) { let idx = appDB.listaExtra.findIndex(e => e.nombre === nombre); if (idx !== -1) appDB.listaExtra.splice(idx, 1); }
-                });
-                checkedItems = {}; window.saveState(); actualizarUI(); populatePantryDatalist(); populateDatalist(); showToast("¡Compra registrada en la despensa!", "success");
-            }, "bg-brand-600", "fa-basket-shopping", "bg-brand-100 text-brand-600");
-        };
-
-        window.copiarListaAlPortapapeles = () => {
-            let txt = "🛒 LISTA COMPRA GASTROPLAN:\n\n"; let reqs = {};
-            for (let day of DIAS_SEMANA) { ['almuerzo', 'cena'].forEach(meal => { let rName = appDB.planSemanal[day][meal]; if (rName) { let r = appDB.recetas.find(x => x.nombre === rName); if(r) Object.entries(r.ingredientes).forEach(([i,c]) => reqs[i] = (reqs[i]||0) + c); } }); }
-            Object.entries(reqs).forEach(([ing, c]) => { let d = appDB.despensa[ing]; if(d && d.qty < c) { let form = d.formatoCompra || 1; let paq = Math.ceil((c - d.qty)/form); txt += `- [ ] ${ing}: ${paq} envase/s (de ${form}${d.unit})\n`; } });
-            if(appDB.listaExtra.length) { txt += "\n📎 EXTRAS:\n"; appDB.listaExtra.forEach(ex => txt += `- [ ] ${ex.nombre}: ${ex.qty} uds\n`); }
-            if(txt === "🛒 LISTA COMPRA GASTROPLAN:\n\n") return showToast("Lista vacía", "info");
-            const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
-            try { document.execCommand('copy'); showToast("Copiada al portapapeles", "success"); } catch(e) { showToast("Error al copiar", "error"); }
-            document.body.removeChild(ta);
-        };
-
-        function showToast(msg, type="success") {
-            const c = document.getElementById('toast-container'); const id = 'toast-'+Date.now();
-            let styles = type==='success' ? "bg-slate-900 text-white" : type==='error' ? "bg-red-600 text-white" : "bg-sky-600 text-white";
-            let icon = type==='success' ? "fa-check" : type==='error' ? "fa-xmark" : "fa-info";
-            c.insertAdjacentHTML('beforeend', `<div id="${id}" class="flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform -translate-y-4 md:translate-y-4 opacity-0 pointer-events-auto ${styles} text-sm font-bold"><i class="fa-solid ${icon} text-lg"></i> ${msg}</div>`);
-            setTimeout(()=> { let el = document.getElementById(id); if(el) el.classList.remove('-translate-y-4', 'md:translate-y-4', 'opacity-0'); }, 10);
-            setTimeout(()=> { let el = document.getElementById(id); if(el) { el.classList.add('-translate-y-4', 'md:translate-y-4', 'opacity-0'); setTimeout(()=>el.remove(),300); } }, 3000);
-        }
-
-        function customConfirm(title, msg, onConfirmCallback, confirmColorClass = 'bg-brand-600', icon = 'fa-circle-exclamation', iconColorClass = 'bg-slate-100 text-slate-600') {
-            document.getElementById('confirm-title').innerText = title; 
-            document.getElementById('confirm-msg').innerText = msg;
-            
-            const iconEl = document.getElementById('confirm-icon'); 
-            iconEl.className = `w-20 h-20 rounded-[2rem] mx-auto flex items-center justify-center text-4xl mb-6 ${iconColorClass}`; 
-            iconEl.innerHTML = `<i class="fa-solid ${icon}"></i>`;
-            
-            const btnOk = document.getElementById('btn-confirm-ok'); 
-            btnOk.className = `w-full md:w-1/2 py-4 md:py-3.5 flex justify-center items-center gap-2 ${confirmColorClass} text-white rounded-2xl font-bold text-base md:text-sm shadow-lg transition-all active:scale-95 order-1 md:order-2`;
-            // INYECCIÓN FORZADA DEL TEXTO PARA EVITAR BOTÓN BLANCO
-            btnOk.innerHTML = `<i class="fa-solid fa-check"></i> Aceptar`;
-            btnOk.onclick = () => { closeConfirmModal(); onConfirmCallback(); };
-            
-            const btnCancel = document.getElementById('btn-confirm-cancel');
-            // INYECCIÓN FORZADA DEL TEXTO PARA EVITAR BOTÓN BLANCO
-            btnCancel.innerHTML = `Cancelar`;
-            btnCancel.onclick = () => closeConfirmModal();
-            
-            const modal = document.getElementById('modal-confirm'); 
-            const content = document.getElementById('modal-confirm-content');
-            modal.classList.remove('hidden'); 
-            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
-        }
-        function closeConfirmModal() { const modal = document.getElementById('modal-confirm'); const content = document.getElementById('modal-confirm-content'); content.classList.add('scale-95'); modal.classList.add('opacity-0'); setTimeout(() => modal.classList.add('hidden'), 300); }
     </script>
 </body>
 </html>
