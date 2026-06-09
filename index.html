@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GastroPlan - Gestor de Menús y Despensa</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Plugin 'forms' añadido para garantizar que los checkboxes se vean perfectos en móvil -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <meta name="theme-color" content="#ffffff">
@@ -165,7 +166,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-6">
-                    <!-- Columna Única: Sugerencia del día -->
+                    <!-- Sugerencia inteligente del chef -->
                     <div class="bg-slate-900 rounded-[2rem] p-6 md:p-8 text-white relative overflow-hidden shadow-lg flex flex-col justify-between min-h-[280px]">
                         <div class="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
                             <i class="fa-solid fa-utensils text-[12rem] md:text-[16rem]"></i>
@@ -194,12 +195,18 @@
 
             <!-- PESTAÑA 2: RECETARIO -->
             <section id="tab-recetas" class="tab-content hidden space-y-6">
+                <!-- Botón Flotante (Solo Móvil) -->
+                <button onclick="window.openRecipeModal()" class="md:hidden fixed bottom-24 right-5 bg-brand-600 text-white w-14 h-14 rounded-full shadow-[0_8px_25px_rgba(22,163,74,0.5)] flex items-center justify-center z-[50] active:scale-90 transition-transform">
+                    <i class="fa-solid fa-plus text-2xl"></i>
+                </button>
+
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-3xl font-black text-slate-900 tracking-tight">Recetario</h2>
                         <p class="text-sm text-slate-500">Tus platos habituales listos para planificar.</p>
                     </div>
-                    <button onclick="window.openRecipeModal()" class="w-full md:w-auto bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 md:py-3 rounded-2xl shadow-lg shadow-brand-600/20 text-base md:text-sm flex items-center justify-center gap-2 transition-transform active:scale-95">
+                    <!-- Botón normal (Solo Escritorio) -->
+                    <button onclick="window.openRecipeModal()" class="hidden md:flex w-full md:w-auto bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 md:py-3 rounded-2xl shadow-lg shadow-brand-600/20 text-base md:text-sm items-center justify-center gap-2 transition-transform active:scale-95">
                         <i class="fa-solid fa-plus text-lg"></i> Nueva Receta
                     </button>
                 </div>
@@ -208,7 +215,7 @@
                 <div class="bg-white p-2 md:p-3 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-2">
                     <div class="relative w-full">
                         <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 text-lg md:text-base"></i>
-                        <input type="text" id="search-recipes" oninput="window.renderRecetasTab()" placeholder="Buscar receta o ingrediente..." class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-base md:text-sm transition-all">
+                        <input type="text" id="search-recipes" oninput="window.renderRecetasTab()" placeholder="Buscar receta o ingrediente..." autocomplete="off" class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-base md:text-sm transition-all">
                     </div>
                     <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                         <button onclick="window.filterRecipeType('todos')" id="filter-type-todos" class="recipe-filter-btn active-filter px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all">Todos</button>
@@ -245,7 +252,8 @@
                             <form onsubmit="window.addPantryItemQuick(event)" class="space-y-4 relative z-10">
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Ingrediente</label>
-                                    <input type="text" id="pantry-add-name" required list="pantry-items-datalist" placeholder="Ej. Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
+                                    <!-- Autocomplete añadido aquí -->
+                                    <input type="text" id="pantry-add-name" required list="pantry-items-datalist" autocomplete="off" placeholder="Ej. Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
                                 </div>
                                 <div class="flex gap-3">
                                     <div class="w-1/3">
@@ -323,8 +331,8 @@
                             <form onsubmit="window.addExtraShoppingItem(event)" class="space-y-4 relative z-10">
                                 <div>
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Producto o Ingrediente</label>
-                                    <input type="text" id="extra-item-name" required list="extra-items-historial" placeholder="Ej. Champú, Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
-                                    <datalist id="extra-items-historial"></datalist>
+                                    <!-- Autocomplete añadido aquí -->
+                                    <input type="text" id="extra-item-name" required list="extra-items-historial" autocomplete="off" placeholder="Ej. Champú, Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
                                 </div>
                                 <div class="flex gap-3">
                                     <div class="w-1/3">
@@ -362,7 +370,9 @@
     <!-- Notificaciones flotantes -->
     <div id="toast-container" class="fixed top-4 md:bottom-4 md:top-auto left-4 right-4 md:left-auto z-[70] flex flex-col gap-2 pointer-events-none"></div>
 
+    <!-- DATALISTS (Movidos fuera de las pestañas ocultas para compatibilidad total con móviles) -->
     <datalist id="pantry-items-datalist"></datalist>
+    <datalist id="extra-items-historial"></datalist>
 
     <!-- Modal: Receta (Crear/Editar) -->
     <div id="modal-recipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4 transition-opacity">
@@ -484,7 +494,7 @@
         </div>
     </div>
 
-    <!-- Modal Confirm Personalizado -->
+    <!-- Modal Confirm Personalizado (Botones Corregidos) -->
     <div id="modal-confirm" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[80] flex items-center justify-center hidden p-4 transition-opacity">
         <div class="bg-white rounded-[2rem] max-w-sm w-full p-6 md:p-8 shadow-2xl border border-slate-100 text-center transform transition-transform scale-95" id="modal-confirm-content">
             <div id="confirm-icon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4"></div>
@@ -492,7 +502,7 @@
             <p id="confirm-msg" class="text-base text-slate-500 mb-8 whitespace-pre-wrap leading-relaxed"></p>
             <div class="flex flex-col md:flex-row gap-3">
                 <button id="btn-confirm-cancel" class="w-full py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition-all active:scale-95 order-2 md:order-1">Cancelar</button>
-                <button id="btn-confirm-ok" class="w-full py-4 md:py-3 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95 order-1 md:order-2">Aceptar</button>
+                <button id="btn-confirm-ok" class="w-full py-4 md:py-3 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95 order-1 md:order-2"></button>
             </div>
         </div>
     </div>
@@ -560,7 +570,7 @@
     <!-- LOGICA FIREBASE Y APLICACIÓN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let app, auth, db;
@@ -568,11 +578,10 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'gastroplan-app';
 
         try {
-            // Evaluamos de manera segura si existe una variable de entorno inyectada.
-            // Si no existe, usamos de manera directa tu configuración de Firebase en producción.
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 firebaseConfig = JSON.parse(__firebase_config);
             } else {
+                // TU_CONFIGURACION_DE_FIREBASE
                 firebaseConfig = {
   					apiKey: "AIzaSyCoWNsMvHHdaINMtoOI-GdV9fs79of7Fqk",
   					authDomain: "gastroplan-6bbad.firebaseapp.com",
@@ -631,26 +640,24 @@
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         window.loginWithGoogle = () => {
-            if (!auth) return alert("Firebase no está bien inicializado. Comprueba tu configuración de Firebase en el archivo index.html.");
+            if (!auth) return alert("Firebase no está bien inicializado. Comprueba tu configuración de Firebase.");
             
             const loading = document.getElementById('login-loading');
             loading.classList.remove('hidden');
-            loading.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Redirigiendo a Google...';
+            loading.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Abriendo ventana de Google...';
             
             const provider = new GoogleAuthProvider();
-            signInWithRedirect(auth, provider).catch(error => {
-                loading.classList.add('hidden');
-                alert("Error de redirección: " + error.message);
-            });
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    loading.classList.add('hidden');
+                    showToast("Sesión iniciada con éxito", "success");
+                })
+                .catch(error => {
+                    loading.classList.add('hidden');
+                    console.error("Error de autenticación:", error);
+                    showToast("Error de acceso: " + error.message, "error");
+                });
         };
-
-        if (auth) {
-            getRedirectResult(auth).catch((error) => {
-                const loading = document.getElementById('login-loading');
-                loading.classList.remove('hidden');
-                loading.innerHTML = `<span class="text-red-500 font-bold">Error de Google: ${error.message}</span>`;
-            });
-        }
 
         window.loginAsGuest = () => {
             localStorage.setItem('gastroplan_guest', 'true');
@@ -741,7 +748,8 @@
                     window.saveState();
                 }
             }, (error) => {
-                showToast("Error de sincronización con la nube", "error");
+                console.error("Error de sincronización con Firestore:", error);
+                showToast("Error conectando con la nube. Comprueba tu conexión.", "error");
             });
         }
 
@@ -751,7 +759,10 @@
                 return;
             }
             if (!currentUserId || !appDB) return;
-            setDoc(getDocRef(), appDB).catch(e => showToast("Error al guardar en la nube", "error"));
+            setDoc(getDocRef(), appDB).catch(e => {
+                console.error("Firestore Save Error:", e);
+                showToast("Error al guardar los datos en la nube.", "error");
+            });
         };
 
         // --- LOGICA DE LA APLICACIÓN ---
@@ -767,7 +778,7 @@
 
         function checkRecipeCocinable(receta) {
             let totalReq = Object.keys(receta.ingredientes).length;
-            if (totalReq === 0) return { porcentaje: 100, faltantes: [], correctos: 0 };
+            if (totalReq === 0) return { porcentaje: 100, faltantes: [], correctos: 0, total: 0 };
             let correctos = 0; let faltantes = [];
             for (const [ingReq, cantReq] of Object.entries(receta.ingredientes)) {
                 let despInfo = appDB.despensa[ingReq];
@@ -905,13 +916,14 @@
             }).join('');
         };
 
-        window.openRecipeModal = (index = -1) => {
+        window.openRecipeModal = (index) => {
+            const isEdit = typeof index === 'number' && index >= 0;
             const container = document.getElementById('recipe-ingredients-rows');
             container.innerHTML = '';
             const modal = document.getElementById('modal-recipe');
             const content = document.getElementById('modal-recipe-content');
             
-            if (index === -1) {
+            if (!isEdit) {
                 document.getElementById('modal-recipe-title').innerText = "Nueva Receta";
                 document.getElementById('recipe-form').reset();
                 document.getElementById('recipe-edit-index').value = "";
@@ -933,7 +945,8 @@
         window.closeRecipeModal = () => { 
             const modal = document.getElementById('modal-recipe');
             const content = document.getElementById('modal-recipe-content');
-            content.classList.add('translate-y-full', 'md:scale-95'); modal.classList.add('opacity-0');
+            content.classList.add('translate-y-full', 'scale-95'); 
+            modal.classList.add('opacity-0');
             setTimeout(() => modal.classList.add('hidden'), 300);
         };
 
@@ -942,10 +955,10 @@
             const opts = Object.keys(appDB.despensa).sort().map(i => `<option value="${i}" ${i===ingName?'selected':''}>${i} (${appDB.despensa[i].unit})</option>`).join('');
             document.getElementById('recipe-ingredients-rows').insertAdjacentHTML('beforeend', `
                 <div id="${rowId}" class="flex gap-3 items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-                    <select required class="ing-select flex-grow bg-transparent text-base md:text-sm font-semibold px-2 py-2 outline-none w-1/2">
+                    <select class="ing-select flex-grow bg-transparent text-base md:text-sm font-semibold px-2 py-2 outline-none w-1/2">
                         <option value="">Seleccionar...</option>${opts}
                     </select>
-                    <input type="number" step="any" min="0.1" value="${qty}" required class="ing-qty w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-3 text-base md:text-sm text-center font-bold outline-none focus:ring-2 focus:ring-brand-500">
+                    <input type="number" step="any" min="0.1" value="${qty}" class="ing-qty w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-3 text-base md:text-sm text-center font-bold outline-none focus:ring-2 focus:ring-brand-500">
                     <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-red-400 hover:text-red-600 bg-red-50 w-10 h-10 rounded-xl flex items-center justify-center active:scale-95"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             `);
@@ -953,21 +966,35 @@
 
         window.saveRecipe = (e) => {
             e.preventDefault();
-            const idx = document.getElementById('recipe-edit-index').value;
+            const idxStr = document.getElementById('recipe-edit-index').value;
             const name = document.getElementById('recipe-name').value.trim();
+            if (!name) return showToast("El nombre de la receta es obligatorio", "error");
+
             let ings = {};
             Array.from(document.getElementById('recipe-ingredients-rows').children).forEach(row => {
                 const s = row.querySelector('.ing-select').value;
                 const q = parseFloat(row.querySelector('.ing-qty').value);
-                if (s && q) ings[s] = q;
+                if (s && q > 0) ings[s] = q;
             });
+
             if (Object.keys(ings).length === 0) return showToast("Añade al menos un ingrediente", "error");
+
             const data = { nombre: name, tipo: document.getElementById('recipe-type').value, ingredientes: ings, instrucciones: document.getElementById('recipe-instructions').value.trim() };
-            if (idx === "") {
-                if (appDB.recetas.some(r => r.nombre.toLowerCase() === name.toLowerCase())) return showToast("Nombre duplicado", "error");
+            
+            if (idxStr === "") {
+                if (appDB.recetas.some(r => r.nombre.toLowerCase() === name.toLowerCase())) return showToast("Ya existe una receta con ese nombre", "error");
                 appDB.recetas.push(data);
-            } else { appDB.recetas[parseInt(idx)] = data; }
-            window.saveState(); window.closeRecipeModal(); window.renderRecetasTab(); showToast("Receta guardada", "success");
+            } else { 
+                const idx = parseInt(idxStr);
+                if (appDB.recetas.some((r, i) => i !== idx && r.nombre.toLowerCase() === name.toLowerCase())) {
+                    return showToast("Ya existe una receta con ese nombre", "error");
+                }
+                appDB.recetas[idx] = data; 
+            }
+            window.saveState(); 
+            window.closeRecipeModal(); 
+            actualizarUI(); 
+            showToast("Receta guardada", "success");
         };
 
         window.deleteRecipe = (idx) => {
@@ -1027,7 +1054,7 @@
 
         function populatePantryDatalist() {
             const list = document.getElementById('pantry-items-datalist');
-            if (list && appDB) list.innerHTML = Object.keys(appDB.despensa).sort().map(name => `<option value="${name}">`).join('');
+            if (list && appDB) list.innerHTML = Object.keys(appDB.despensa).sort().map(name => `<option value="${name}">${name}</option>`).join('');
         }
 
         window.addPantryItemQuick = (e) => {
@@ -1089,7 +1116,7 @@
                 const cena = appDB.planSemanal[day].cena;
                 const renderSlot = (mealName, recipeName, mealType) => {
                     if (recipeName) {
-                        return `<div><div class="text-[10px] font-black uppercase text-slate-400 mb-2 flex justify-between items-center"><span>${mealName}</span><div class="flex gap-2"><button onclick="window.cocinarRecetaSlot('${day}', '${mealType}')" class="bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors active:scale-95"><i class="fa-solid fa-check"></i></button><button onclick="window.quitarDelPlan('${day}', '${mealType}')" class="bg-red-50 text-red-400 hover:bg-red-500 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors active:scale-95"><i class="fa-solid fa-xmark"></i></button></div></div><div class="bg-brand-50 border border-brand-200 p-4 rounded-2xl shadow-sm text-base font-bold text-brand-900 group"><span class="block truncate">${recipeName}</span></div></div>`;
+                        return `<div><div class="text-[10px] font-black uppercase text-slate-400 mb-2 flex justify-between items-center"><span>${mealName}</span><div class="flex gap-2"><button onclick="window.cocinarRecetaSlot('${day}', '${mealType}')" class="bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors active:scale-95" title="Marcar cocinado"><i class="fa-solid fa-check"></i> <span class="text-xs font-bold">Hecho</span></button><button onclick="window.quitarDelPlan('${day}', '${mealType}')" class="bg-red-50 text-red-400 hover:bg-red-500 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors active:scale-95" title="Quitar plato"><i class="fa-solid fa-xmark"></i></button></div></div><div class="bg-brand-50 border border-brand-200 p-4 rounded-2xl shadow-sm text-base font-bold text-brand-900 group"><span class="block truncate">${recipeName}</span></div></div>`;
                     } else {
                         return `<div><div class="text-[10px] font-black uppercase text-slate-400 mb-2">${mealName}</div><button onclick="window.openSelectRecipeModal('${day}', '${mealType}')" class="w-full border-2 border-dashed border-slate-200 rounded-2xl p-4 text-base font-bold text-slate-400 hover:text-brand-600 hover:border-brand-400 hover:bg-brand-50 transition-colors text-left flex items-center justify-between active:scale-95 bg-white"><span>Añadir plato...</span><div class="w-8 h-8 bg-slate-50 text-slate-300 rounded-lg flex items-center justify-center"><i class="fa-solid fa-plus text-sm"></i></div></button></div>`;
                     }
@@ -1194,7 +1221,7 @@
 
         function populateDatalist() {
             const list = document.getElementById('extra-items-historial');
-            if (list && appDB) list.innerHTML = Array.from(new Set([...Object.keys(appDB.despensa), ...appDB.historialExtra])).sort().map(h => `<option value="${h}">`).join('');
+            if (list && appDB) list.innerHTML = Array.from(new Set([...Object.keys(appDB.despensa), ...appDB.historialExtra])).sort().map(h => `<option value="${h}">${h}</option>`).join('');
         }
 
         window.addExtraShoppingItem = (e) => {
@@ -1242,13 +1269,28 @@
         }
 
         function customConfirm(title, msg, onConfirmCallback, confirmColorClass = 'bg-brand-600', icon = 'fa-circle-exclamation', iconColorClass = 'bg-slate-100 text-slate-600') {
-            document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-msg').innerText = msg;
-            const iconEl = document.getElementById('confirm-icon'); iconEl.className = `w-20 h-20 rounded-[2rem] mx-auto flex items-center justify-center text-4xl mb-6 ${iconColorClass}`; iconEl.innerHTML = `<i class="fa-solid ${icon}"></i>`;
-            const btnOk = document.getElementById('btn-confirm-ok'); btnOk.className = `w-full md:w-1/2 py-4 md:py-3.5 ${confirmColorClass} text-white rounded-2xl font-bold text-base md:text-sm shadow-lg transition-all active:scale-95 order-1 md:order-2`;
+            document.getElementById('confirm-title').innerText = title; 
+            document.getElementById('confirm-msg').innerText = msg;
+            
+            const iconEl = document.getElementById('confirm-icon'); 
+            iconEl.className = `w-20 h-20 rounded-[2rem] mx-auto flex items-center justify-center text-4xl mb-6 ${iconColorClass}`; 
+            iconEl.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            
+            const btnOk = document.getElementById('btn-confirm-ok'); 
+            btnOk.className = `w-full md:w-1/2 py-4 md:py-3.5 flex justify-center items-center gap-2 ${confirmColorClass} text-white rounded-2xl font-bold text-base md:text-sm shadow-lg transition-all active:scale-95 order-1 md:order-2`;
+            // INYECCIÓN FORZADA DEL TEXTO PARA EVITAR BOTÓN BLANCO
+            btnOk.innerHTML = `<i class="fa-solid fa-check"></i> Aceptar`;
             btnOk.onclick = () => { closeConfirmModal(); onConfirmCallback(); };
-            document.getElementById('btn-confirm-cancel').onclick = () => closeConfirmModal();
-            const modal = document.getElementById('modal-confirm'); const content = document.getElementById('modal-confirm-content');
-            modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+            
+            const btnCancel = document.getElementById('btn-confirm-cancel');
+            // INYECCIÓN FORZADA DEL TEXTO PARA EVITAR BOTÓN BLANCO
+            btnCancel.innerHTML = `Cancelar`;
+            btnCancel.onclick = () => closeConfirmModal();
+            
+            const modal = document.getElementById('modal-confirm'); 
+            const content = document.getElementById('modal-confirm-content');
+            modal.classList.remove('hidden'); 
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
         }
         function closeConfirmModal() { const modal = document.getElementById('modal-confirm'); const content = document.getElementById('modal-confirm-content'); content.classList.add('scale-95'); modal.classList.add('opacity-0'); setTimeout(() => modal.classList.add('hidden'), 300); }
     </script>
