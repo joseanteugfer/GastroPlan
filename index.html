@@ -9,30 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            900: '#14532d',
-                        }
-                    },
-                    spacing: {
-                        'safe': 'env(safe-area-inset-bottom)',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -587,31 +563,32 @@
         import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =======================================================================================
-        // 🔥 TU_CONFIGURACION_DE_FIREBASE 
-        // =======================================================================================
-        const firebaseConfig = {
-  			apiKey: "AIzaSyCoWNsMvHHdaINMtoOI-GdV9fs79of7Fqk",
-  			authDomain: "gastroplan-6bbad.firebaseapp.com",
-  			projectId: "gastroplan-6bbad",
-  			storageBucket: "gastroplan-6bbad.firebasestorage.app",
-  			messagingSenderId: "810386294067",
-  			appId: "1:810386294067:web:94603171ecd674fd9caa46"
-		};
-        // =======================================================================================
-
         let app, auth, db;
-        
+        let firebaseConfig;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gastroplan-app';
+
         try {
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : usuarioConfig;
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'gastroplan-app';
+            // Evaluamos de manera segura si existe una variable de entorno inyectada.
+            // Si no existe, usamos de manera directa tu configuración de Firebase en producción.
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } else {
+                firebaseConfig = {
+  					apiKey: "AIzaSyCoWNsMvHHdaINMtoOI-GdV9fs79of7Fqk",
+  					authDomain: "gastroplan-6bbad.firebaseapp.com",
+  					projectId: "gastroplan-6bbad",
+  					storageBucket: "gastroplan-6bbad.firebasestorage.app",
+  					messagingSenderId: "810386294067",
+  					appId: "1:810386294067:web:94603171ecd674fd9caa46"
+				};
+            }
 
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
         } catch (error) {
-            console.error("Error Crítico:", error);
-            document.getElementById('login-loading').innerHTML = '<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Error en las credenciales de Firebase. Revisa comillas (") y comas (,) en tu código.</span>';
+            console.error("Error Crítico de Inicialización:", error);
+            document.getElementById('login-loading').innerHTML = `<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Error Crítico: ${error.message}. Verifica que hayas rellenado tus credenciales reales de Firebase en el archivo index.html.</span>`;
             document.getElementById('login-loading').classList.remove('hidden');
         }
 
@@ -654,7 +631,7 @@
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         window.loginWithGoogle = () => {
-            if (!auth) return alert("Firebase no está bien configurado.");
+            if (!auth) return alert("Firebase no está bien inicializado. Comprueba tu configuración de Firebase en el archivo index.html.");
             
             const loading = document.getElementById('login-loading');
             loading.classList.remove('hidden');
@@ -671,7 +648,7 @@
             getRedirectResult(auth).catch((error) => {
                 const loading = document.getElementById('login-loading');
                 loading.classList.remove('hidden');
-                loading.innerHTML = '<span class="text-red-500 font-bold">Error de Google: ' + error.message + '</span>';
+                loading.innerHTML = `<span class="text-red-500 font-bold">Error de Google: ${error.message}</span>`;
             });
         }
 
@@ -697,7 +674,7 @@
         };
 
         const initAuthEnv = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token && auth) {
                 await signInWithCustomToken(auth, __initial_auth_token);
             }
         };
