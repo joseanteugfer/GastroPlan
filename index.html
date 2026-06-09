@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GastroPlan - Gestor de Menús y Despensa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    },
+                    spacing: {
+                        'safe': 'env(safe-area-inset-bottom)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type="number"], input[type="text"], select { font-size: 16px !important; }
+        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-container" class="fixed inset-0 bg-slate-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white p-8 md:p-12 rounded-[2rem] shadow-xl border border-slate-100 max-w-md w-full text-center flex flex-col items-center">
+            <div class="bg-gradient-to-br from-brand-400 to-brand-600 text-white w-20 h-20 rounded-3xl shadow-lg shadow-brand-500/30 flex items-center justify-center mb-6">
+                <i class="fa-solid fa-leaf text-4xl"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">GastroPlan</h1>
+            <p class="text-sm text-slate-500 mb-8">Planifica tus comidas y gestiona tu despensa en la nube.</p>
+            
+            <button onclick="window.loginWithGoogle()" class="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold px-6 py-4 rounded-2xl shadow-sm flex items-center justify-center gap-3 transition-transform active:scale-95 text-base">
+                <svg viewBox="0 0 24 24" class="w-6 h-6"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Continuar con Google
+            </button>
+            <div id="login-loading" class="hidden mt-4 text-brand-600 text-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Conectando...
+            </div>
+        </div>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="app-container" class="hidden flex-col min-h-screen pb-20 md:pb-0">
+        <!-- Encabezado Principal -->
+        <header class="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-br from-brand-400 to-brand-600 text-white p-2 md:p-2.5 rounded-xl md:rounded-2xl shadow-lg shadow-brand-500/30 flex items-center justify-center">
+                        <i class="fa-solid fa-leaf text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">GastroPlan</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1 md:space-x-2">
+                    <button onclick="window.reiniciarApp()" class="text-slate-400 hover:text-red-500 p-3 rounded-xl hover:bg-red-50 transition-colors text-sm flex items-center gap-1.5 font-semibold active:scale-95" title="Restablecer datos de fábrica">
+                        <i class="fa-solid fa-arrow-rotate-left text-lg"></i>
+                        <span class="hidden md:inline">Restablecer</span>
+                    </button>
+                    <button onclick="window.logoutUsuario()" class="text-slate-400 hover:text-slate-700 p-3 rounded-xl hover:bg-slate-100 transition-colors text-sm flex items-center gap-1.5 font-semibold active:scale-95" title="Cerrar sesión">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-lg"></i>
+                        <span class="hidden md:inline">Salir</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Menú de Navegación (Solo Desktop) -->
+            <div class="hidden md:block bg-slate-50/80 backdrop-blur-md border-t border-slate-100">
+                <div class="max-w-7xl mx-auto px-4">
+                    <nav class="flex space-x-1 py-2 overflow-x-auto no-scrollbar" aria-label="Tabs">
+                        <button onclick="window.switchTab('dashboard')" id="desk-tab-dashboard" class="desk-tab active-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
+                            <i class="fa-solid fa-chart-pie"></i> Panel
+                        </button>
+                        <button onclick="window.switchTab('recetas')" id="desk-tab-recetas" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
+                            <i class="fa-solid fa-book-open"></i> Recetario (<span id="count-recetas">0</span>)
+                        </button>
+                        <button onclick="window.switchTab('despensa')" id="desk-tab-despensa" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
+                            <i class="fa-solid fa-kitchen-set"></i> Mi Despensa (<span id="count-despensa">0</span>)
+                        </button>
+                        <button onclick="window.switchTab('planificador')" id="desk-tab-planificador" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
+                            <i class="fa-solid fa-calendar-day"></i> Plan Semanal
+                        </button>
+                        <button onclick="window.switchTab('compras')" id="desk-tab-compras" class="desk-tab flex items-center gap-2 px-4 py-3 rounded-xl text-sm transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 whitespace-nowrap">
+                            <i class="fa-solid fa-basket-shopping"></i> Lista Compra (<span id="count-compras">0</span>)
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Barra de Navegación Inferior (Solo Móvil) -->
+        <div class="md:hidden glass-nav fixed bottom-0 left-0 right-0 border-t border-slate-200 z-40 pb-safe shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
+            <nav class="flex justify-around items-center px-1 pb-1 pt-2">
+                <button onclick="window.switchTab('dashboard')" id="mob-tab-dashboard" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1">
+                    <i class="fa-solid fa-chart-pie text-xl mb-1 transition-transform"></i>
+                    <span class="text-[10px] font-bold">Panel</span>
+                </button>
+                <button onclick="window.switchTab('recetas')" id="mob-tab-recetas" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1">
+                    <i class="fa-solid fa-book-open text-xl mb-1 transition-transform"></i>
+                    <span class="text-[10px] font-bold">Recetas</span>
+                </button>
+                <button onclick="window.switchTab('planificador')" id="mob-tab-planificador" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1 -mt-4">
+                    <div class="bg-brand-500 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-brand-500/30 mb-1 border-4 border-white">
+                        <i class="fa-solid fa-calendar-day text-xl"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-600">Plan</span>
+                </button>
+                <button onclick="window.switchTab('despensa')" id="mob-tab-despensa" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1">
+                    <i class="fa-solid fa-kitchen-set text-xl mb-1 transition-transform"></i>
+                    <span class="text-[10px] font-bold">Despensa</span>
+                </button>
+                <button onclick="window.switchTab('compras')" id="mob-tab-compras" class="mob-tab text-slate-400 flex flex-col items-center justify-center w-1/5 py-1 relative">
+                    <div class="relative">
+                        <i class="fa-solid fa-basket-shopping text-xl mb-1 transition-transform"></i>
+                        <span id="mob-badge-compras" class="absolute -top-1.5 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">0</span>
+                    </div>
+                    <span class="text-[10px] font-bold">Compra</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Contenido Principal -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-4 md:py-8 overflow-x-hidden">
+
+            <!-- PESTAÑA 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content block space-y-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div onclick="window.switchTab('recetas')" class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform">
+                        <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-bowl-food text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900" id="dash-recipes-count">0</h3>
+                        <p class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">Recetas</p>
+                    </div>
+                    <div onclick="window.switchTab('despensa')" class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-carrot text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900" id="dash-pantry-count">0</h3>
+                        <p class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">En Stock</p>
+                    </div>
+                    <div class="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                        <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-fire-burner text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900" id="dash-cookable-count">0</h3>
+                        <p class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">Cocinables</p>
+                    </div>
+                    <div onclick="window.switchTab('compras')" class="bg-brand-50 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-brand-100 shadow-sm flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform">
+                        <div class="w-12 h-12 bg-white text-brand-600 rounded-2xl flex items-center justify-center mb-3 shadow-sm">
+                            <i class="fa-solid fa-cart-shopping text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-brand-900" id="dash-shopping-count">0</h3>
+                        <p class="text-[10px] md:text-xs text-brand-700 font-bold uppercase tracking-wider mt-1">A Comprar</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Columna Única: Sugerencia del día -->
+                    <div class="bg-slate-900 rounded-[2rem] p-6 md:p-8 text-white relative overflow-hidden shadow-lg flex flex-col justify-between min-h-[280px]">
+                        <div class="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
+                            <i class="fa-solid fa-utensils text-[12rem] md:text-[16rem]"></i>
+                        </div>
+                        <div class="relative z-10 space-y-4 flex-grow">
+                            <span class="bg-white/10 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-white/10 backdrop-blur-sm inline-block">💡 Idea del chef</span>
+                            <div class="space-y-2 mt-4">
+                                <h2 class="text-3xl md:text-5xl font-black tracking-tight leading-tight" id="suggestion-title">Cargando...</h2>
+                                <p class="text-slate-300 text-sm max-w-2xl leading-relaxed line-clamp-2" id="suggestion-ingredients-preview"></p>
+                            </div>
+                        </div>
+                        <div class="relative z-10 pt-6 mt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div id="suggestion-badge" class="w-full sm:w-auto text-center sm:text-left"></div>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <button onclick="window.obtenerSugerencia()" class="flex-1 sm:flex-none bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-3 md:py-3.5 rounded-2xl text-sm transition-colors flex items-center justify-center gap-2 backdrop-blur-md active:scale-95">
+                                    <i class="fa-solid fa-shuffle"></i> Otra
+                                </button>
+                                <button id="btn-add-suggestion-plan" class="flex-1 sm:flex-none bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-3 md:py-3.5 rounded-2xl text-sm shadow transition-colors flex items-center justify-center gap-2 active:scale-95">
+                                    <i class="fa-solid fa-calendar-plus"></i> Al Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PESTAÑA 2: RECETARIO -->
+            <section id="tab-recetas" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Recetario</h2>
+                        <p class="text-sm text-slate-500">Tus platos habituales listos para planificar.</p>
+                    </div>
+                    <button onclick="window.openRecipeModal()" class="w-full md:w-auto bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 md:py-3 rounded-2xl shadow-lg shadow-brand-600/20 text-base md:text-sm flex items-center justify-center gap-2 transition-transform active:scale-95">
+                        <i class="fa-solid fa-plus text-lg"></i> Nueva Receta
+                    </button>
+                </div>
+
+                <!-- Buscador y filtro -->
+                <div class="bg-white p-2 md:p-3 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-2">
+                    <div class="relative w-full">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 text-lg md:text-base"></i>
+                        <input type="text" id="search-recipes" oninput="window.renderRecetasTab()" placeholder="Buscar receta o ingrediente..." class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-base md:text-sm transition-all">
+                    </div>
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        <button onclick="window.filterRecipeType('todos')" id="filter-type-todos" class="recipe-filter-btn active-filter px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all">Todos</button>
+                        <button onclick="window.filterRecipeType('Almuerzo')" id="filter-type-almuerzo" class="recipe-filter-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 whitespace-nowrap transition-all">Almuerzos</button>
+                        <button onclick="window.filterRecipeType('Cena')" id="filter-type-cena" class="recipe-filter-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 whitespace-nowrap transition-all">Cenas</button>
+                    </div>
+                </div>
+
+                <!-- Listado Principal de Recetas -->
+                <div id="recetas-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                    <!-- Se rellena dinámicamente -->
+                </div>
+            </section>
+
+            <!-- PESTAÑA 3: MI DESPENSA -->
+            <section id="tab-despensa" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Despensa</h2>
+                        <p class="text-sm text-slate-500">Solo se muestran los productos con existencias.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <!-- Añadir rápido (Móvil y Escritorio) -->
+                    <div class="lg:col-span-1 space-y-4">
+                        <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-lg relative overflow-hidden">
+                            <div class="absolute -right-6 -bottom-6 opacity-10">
+                                <i class="fa-solid fa-box text-[10rem]"></i>
+                            </div>
+                            <h3 class="font-black text-white text-xl mb-1 relative z-10">Añadir Stock</h3>
+                            <p class="text-xs text-slate-400 mb-5 relative z-10">Actualiza o crea un ingrediente</p>
+                            
+                            <form onsubmit="window.addPantryItemQuick(event)" class="space-y-4 relative z-10">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Ingrediente</label>
+                                    <input type="text" id="pantry-add-name" required list="pantry-items-datalist" placeholder="Ej. Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-1/3">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Cant.</label>
+                                        <input type="number" id="pantry-add-qty" required min="0.1" step="any" value="1" class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm text-center">
+                                    </div>
+                                    <div class="w-2/3 flex items-end">
+                                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-base md:text-sm transition-colors active:scale-95">
+                                            Guardar
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Categorías (Filtros) -->
+                        <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm flex overflow-x-auto no-scrollbar lg:flex-wrap lg:p-4 gap-2" id="categories-list">
+                            <!-- Categorías dinámicas -->
+                        </div>
+                    </div>
+
+                    <!-- Tarjetas de Ingredientes en Stock -->
+                    <div class="lg:col-span-3">
+                        <div id="pantry-cards-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            <!-- Renderizado en JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PESTAÑA 4: PLAN SEMANAL -->
+            <section id="tab-planificador" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Plan Semanal</h2>
+                        <p class="text-sm text-slate-500">Organiza tus comidas para generar la lista de la compra.</p>
+                    </div>
+                    <button onclick="window.limpiarPlan()" class="w-full md:w-auto bg-white border border-slate-200 text-slate-600 hover:text-red-600 hover:bg-red-50 font-bold px-6 py-4 md:py-3 rounded-2xl text-base md:text-sm transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-trash-can text-lg"></i> Vaciar Plan
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="plan-days-grid">
+                    <!-- Días dinámicos cargados con JS -->
+                </div>
+            </section>
+
+            <!-- PESTAÑA 5: LISTA DE COMPRA -->
+            <section id="tab-compras" class="tab-content hidden space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Lista de Compra</h2>
+                        <p class="text-sm text-slate-500">Lo que necesitas comprar según tu plan y stock.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.copiarListaAlPortapapeles()" class="flex-1 md:flex-none bg-white border border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 font-bold px-4 py-4 md:py-3 rounded-2xl text-base md:text-sm transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-copy text-lg"></i> <span class="hidden sm:inline">Copiar</span>
+                        </button>
+                        <button onclick="window.completarCompra()" id="btn-completar-compra" class="flex-1 md:flex-none bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-4 md:py-3 rounded-2xl shadow-lg shadow-brand-600/20 text-base md:text-sm flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                            <i class="fa-solid fa-check-double text-lg"></i> Completar Compra
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Añadir items extra -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-lg relative overflow-hidden sticky top-24">
+                            <div class="absolute -right-6 -bottom-6 opacity-10">
+                                <i class="fa-solid fa-cart-plus text-[10rem]"></i>
+                            </div>
+                            <h3 class="font-black text-white text-xl mb-1 relative z-10">Añadir Extra / Ingrediente</h3>
+                            <p class="text-xs text-slate-400 mb-5 relative z-10">Cosas que no están en el menú</p>
+                            
+                            <form onsubmit="window.addExtraShoppingItem(event)" class="space-y-4 relative z-10">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Producto o Ingrediente</label>
+                                    <input type="text" id="extra-item-name" required list="extra-items-historial" placeholder="Ej. Champú, Leche..." class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
+                                    <datalist id="extra-items-historial"></datalist>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-1/3">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Cant.</label>
+                                        <input type="number" id="extra-item-qty" required min="1" step="1" value="1" class="w-full px-4 py-3.5 bg-slate-800 border border-slate-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm text-center">
+                                    </div>
+                                    <div class="w-2/3 flex items-end">
+                                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl text-base md:text-sm transition-colors active:scale-95">
+                                            Añadir
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Lista Consolidada -->
+                    <div class="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-4 md:p-6">
+                        <h3 class="font-black text-slate-900 text-xl mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
+                            <div class="bg-brand-50 text-brand-600 w-10 h-10 rounded-xl flex items-center justify-center">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                            </div>
+                            Para Comprar
+                        </h3>
+                        <div id="shopping-list-container" class="space-y-6">
+                            <!-- Categorías y productos -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Notificaciones flotantes tipo Toast (Móvil optimizado) -->
+    <div id="toast-container" class="fixed top-4 md:bottom-4 md:top-auto left-4 right-4 md:left-auto z-[70] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- DATALISTS PARA AUTOCOMPLETADOS -->
+    <datalist id="pantry-items-datalist"></datalist>
+
+    <!-- MODALES -->
+    <!-- Modal: Receta (Crear/Editar) -->
+    <div id="modal-recipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4 transition-opacity">
+        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-2xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-transform translate-y-full md:translate-y-0" id="modal-recipe-content">
+            <div class="flex items-center justify-between p-5 md:p-6 border-b border-slate-100 bg-slate-50/50">
+                <h3 class="text-xl font-black text-slate-900" id="modal-recipe-title">Nueva Receta</h3>
+                <button onclick="window.closeRecipeModal()" class="text-slate-400 hover:text-slate-700 w-10 h-10 rounded-full hover:bg-slate-200/50 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="recipe-form" onsubmit="window.saveRecipe(event)" class="overflow-y-auto p-5 md:p-6 space-y-6 custom-scrollbar pb-safe">
+                <input type="hidden" id="recipe-edit-index" value="">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nombre de la Receta *</label>
+                        <input type="text" id="recipe-name" required placeholder="Ej. Lasaña" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tipo</label>
+                        <select id="recipe-type" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm font-semibold">
+                            <option value="Almuerzo">Almuerzo</option>
+                            <option value="Cena">Cena</option>
+                            <option value="Ambos">Ambos</option>
+                            <option value="Desayuno">Desayuno/Snack</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <label class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <span>Ingredientes *</span>
+                        <button type="button" onclick="window.addRecipeIngredientRow()" class="text-brand-600 hover:text-brand-700 font-extrabold flex items-center gap-1.5 bg-brand-50 px-3 py-2 rounded-lg active:scale-95">
+                            <i class="fa-solid fa-plus text-lg"></i> Añadir
+                        </button>
+                    </label>
+                    <div id="recipe-ingredients-rows" class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-100"></div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Instrucciones</label>
+                    <textarea id="recipe-instructions" rows="4" placeholder="1. Picar la cebolla..." class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm resize-none custom-scrollbar"></textarea>
+                </div>
+                <div class="pt-4 mt-2 border-t border-slate-100 flex flex-col-reverse md:flex-row justify-end gap-3 pb-4">
+                    <button type="button" onclick="window.closeRecipeModal()" class="w-full md:w-auto px-6 py-4 md:py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-2xl font-bold text-base md:text-sm transition-all">Cancelar</button>
+                    <button type="submit" class="w-full md:w-auto px-6 py-4 md:py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-base md:text-sm shadow-lg shadow-brand-600/20 transition-all">Guardar Receta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Detalle de Receta (Lectura) -->
+    <div id="modal-recipe-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
+        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col pb-safe">
+            <div class="relative bg-slate-900 p-6 md:p-8 text-white">
+                <button onclick="window.closeRecipeDetailModal()" class="absolute top-4 right-4 bg-white/10 hover:bg-white/20 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <span id="detail-recipe-type" class="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-white/20 rounded-full backdrop-blur-sm mb-3 inline-block">Cena</span>
+                <h2 id="detail-recipe-name" class="text-3xl font-black mb-2 tracking-tight">Nombre</h2>
+            </div>
+            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar bg-slate-50 flex-grow grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Ingredientes</h4>
+                    <ul id="detail-recipe-ingredients" class="space-y-2"></ul>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Pasos</h4>
+                    <div id="detail-recipe-instructions" class="text-base md:text-sm text-slate-700 whitespace-pre-wrap leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ingrediente -->
+    <div id="modal-ingredient" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
+        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-lg p-5 md:p-6 shadow-2xl border border-slate-100 max-h-[95vh] overflow-y-auto custom-scrollbar pb-safe">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-black text-slate-900" id="modal-ingredient-title">Añadir</h3>
+                <button onclick="window.closeIngredientModal()" class="text-slate-400 hover:text-slate-600 w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="ingredient-form" onsubmit="window.saveIngredient(event)" class="space-y-5">
+                <input type="hidden" id="ingredient-edit-key" value="">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Nombre *</label>
+                        <input type="text" id="ingredient-name" required class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Categoría</label>
+                        <select id="ingredient-category" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Unidad</label>
+                        <select id="ingredient-unit" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base md:text-sm">
+                            <option value="uds">Unidades (uds)</option>
+                            <option value="g">Gramos (g)</option>
+                            <option value="ml">Mililitros (ml)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-emerald-50/50 p-4 md:p-5 rounded-2xl border border-emerald-100/50 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                            <i class="fa-solid fa-box-open"></i> Stock Casa
+                        </label>
+                        <input type="number" id="ingredient-qty" step="any" min="0" value="0" class="w-full px-4 py-3.5 bg-white border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base md:text-sm font-bold text-center">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-1.5">Formato Compra</label>
+                        <input type="number" id="ingredient-format" step="any" min="0.1" value="1" class="w-full px-4 py-3.5 bg-white border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base md:text-sm text-center">
+                    </div>
+                </div>
+                <div class="pt-4 flex flex-col-reverse md:flex-row justify-end gap-3 pb-2">
+                    <button type="button" onclick="window.closeIngredientModal()" class="w-full md:w-auto px-6 py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base md:text-sm transition-all">Cancelar</button>
+                    <button type="submit" class="w-full md:w-auto px-6 py-4 md:py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-base md:text-sm shadow-lg transition-all active:scale-95">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Confirm Personalizado -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[80] flex items-center justify-center hidden p-4 transition-opacity">
+        <div class="bg-white rounded-[2rem] max-w-sm w-full p-6 md:p-8 shadow-2xl border border-slate-100 text-center transform transition-transform scale-95" id="modal-confirm-content">
+            <div id="confirm-icon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4"></div>
+            <h3 id="confirm-title" class="text-2xl font-black text-slate-900 mb-2"></h3>
+            <p id="confirm-msg" class="text-base text-slate-500 mb-8 whitespace-pre-wrap leading-relaxed"></p>
+            <div class="flex flex-col md:flex-row gap-3">
+                <button id="btn-confirm-cancel" class="w-full py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition-all active:scale-95 order-2 md:order-1">Cancelar</button>
+                <button id="btn-confirm-ok" class="w-full py-4 md:py-3 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95 order-1 md:order-2">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Seleccionar Receta -->
+    <div id="modal-select-recipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
+        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-md shadow-2xl border border-slate-100 flex flex-col h-[80vh] md:max-h-[85vh] overflow-hidden pb-safe">
+            <div class="flex items-center justify-between p-5 md:p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">Elegir Plato</h3>
+                    <p id="modal-select-title-context" class="text-xs font-bold text-brand-600 uppercase tracking-widest mt-1"></p>
+                </div>
+                <button onclick="window.closeSelectRecipeModal()" class="text-slate-400 hover:text-slate-700 w-10 h-10 rounded-full hover:bg-slate-200/50 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 border-b border-slate-100 bg-white">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 text-lg md:text-base"></i>
+                    <input type="text" id="select-recipe-search" oninput="window.filterSelectRecipeList()" placeholder="Buscar receta..." class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base transition-all">
+                </div>
+            </div>
+            <div id="select-recipe-list" class="overflow-y-auto p-4 space-y-3 custom-scrollbar flex-grow bg-slate-50/30"></div>
+        </div>
+    </div>
+
+    <!-- Modal Asignar Receta a Día -->
+    <div id="modal-pick-slot" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4">
+        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-sm p-6 md:p-8 shadow-2xl border border-slate-100 pb-safe">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-[2rem] flex items-center justify-center text-3xl mx-auto mb-4 border border-brand-100">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-900 mb-2">Añadir al Plan</h3>
+                <p id="pick-slot-recipe-name" class="text-sm font-bold text-brand-700 bg-brand-50 inline-block px-4 py-2 rounded-xl"></p>
+            </div>
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Día</label>
+                    <select id="pick-slot-day" class="w-full px-4 py-4 md:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base font-semibold">
+                        <option value="lunes">Lunes</option>
+                        <option value="martes">Martes</option>
+                        <option value="miercoles">Miércoles</option>
+                        <option value="jueves">Jueves</option>
+                        <option value="viernes">Viernes</option>
+                        <option value="sabado">Sábado</option>
+                        <option value="domingo">Domingo</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Momento</label>
+                    <select id="pick-slot-meal" class="w-full px-4 py-4 md:py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-base font-semibold">
+                        <option value="almuerzo">Almuerzo</option>
+                        <option value="cena">Cena</option>
+                    </select>
+                </div>
+            </div>
+            <div class="pt-8 flex flex-col-reverse md:flex-row gap-3">
+                <button onclick="window.closePickSlotModal()" class="w-full py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition-all active:scale-95">Cancelar</button>
+                <button onclick="window.confirmPickSlot()" class="w-full py-4 md:py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA FIREBASE Y APLICACIÓN -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =======================================================================================
+        // 🔥 TU_CONFIGURACION_DE_FIREBASE 
+        // Reemplaza los valores de 'usuarioConfig' con tu config real de Firebase Console.
+        // =======================================================================================
+         const firebaseConfig = {
+			apiKey: "AIzaSyCoWNsMvHHdaINMtoOI-GdV9fs79of7Fqk",
+			authDomain: "gastroplan-6bbad.firebaseapp.com",
+			projectId: "gastroplan-6bbad",
+			storageBucket: "gastroplan-6bbad.firebasestorage.app",
+			messagingSenderId: "810386294067",
+			appId: "1:810386294067:web:94603171ecd674fd9caa46"
+		};
+        // =======================================================================================
+
+        // Sistema para garantizar que funcione en el visualizador actual o en tu propio servidor
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : usuarioConfig;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gastroplan-app';
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserId = null;
+        let unsubscribeSnapshot = null;
+
+        // Estado Global (appDB) y variables de sesión
+        let appDB = null;
+        let activeTab = 'dashboard';
+        let recipeFilterType = 'todos';
+        let pantryActiveCategory = 'Todos';
+        let checkedItems = {}; 
+
+        const DIAS_SEMANA = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+        const NOMBRES_DIAS = {'lunes': 'Lunes', 'martes': 'Martes', 'miercoles': 'Miércoles', 'jueves': 'Jueves', 'viernes': 'Viernes', 'sabado': 'Sábado', 'domingo': 'Domingo'};
+
+        const SEED_DATA = {
+            categorias: ["Verduras y Frutas", "Carnes y Pescados", "Lácteos y Huevos", "Despensa y Pastas", "Aceites y Especias", "Limpieza", "Otros"],
+            recetas: [
+                { nombre: "Macarrones Boloñesa", tipo: "Almuerzo", ingredientes: { "Macarrones": 250, "Carne picada": 300, "Tomate frito": 200, "Cebolla": 1 }, instrucciones: "1. Cuecer pasta.\n2. Sofreír cebolla y carne.\n3. Añadir tomate." },
+                { nombre: "Tortilla de Patatas", tipo: "Cena", ingredientes: { "Patatas": 4, "Huevos": 5, "Cebolla": 1, "Aceite de Oliva": 50 }, instrucciones: "1. Freir patatas y cebolla.\n2. Mezclar con huevo.\n3. Cuajar en sartén." }
+            ],
+            despensa: {
+                "Patatas": { qty: 2, unit: "uds", category: "Verduras y Frutas", formatoCompra: 1 },
+                "Huevos": { qty: 4, unit: "uds", category: "Lácteos y Huevos", formatoCompra: 12 },
+                "Cebolla": { qty: 1, unit: "uds", category: "Verduras y Frutas", formatoCompra: 1 },
+                "Aceite de Oliva": { qty: 1000, unit: "ml", category: "Aceites y Especias", formatoCompra: 1000 },
+                "Macarrones": { qty: 100, unit: "g", category: "Despensa y Pastas", formatoCompra: 500 },
+                "Carne picada": { qty: 0, unit: "g", category: "Carnes y Pescados", formatoCompra: 500 },
+                "Tomate frito": { qty: 400, unit: "g", category: "Despensa y Pastas", formatoCompra: 400 }
+            },
+            planSemanal: {
+                lunes: { almuerzo: "", cena: "" }, martes: { almuerzo: "", cena: "" },
+                miercoles: { almuerzo: "", cena: "" }, jueves: { almuerzo: "", cena: "" },
+                viernes: { almuerzo: "", cena: "" }, sabado: { almuerzo: "", cena: "" }, domingo: { almuerzo: "", cena: "" }
+            },
+            listaExtra: [],
+            historialExtra: ["Papel Higiénico", "Detergente Ropa", "Leche entera", "Bolsas de Basura"]
+        };
+
+        // --- SISTEMA DE AUTENTICACIÓN ---
+        window.loginWithGoogle = () => {
+            const loading = document.getElementById('login-loading');
+            loading.classList.remove('hidden');
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(error => {
+                loading.classList.add('hidden');
+                showToast("Error al iniciar sesión: " + error.message, "error");
+            });
+        };
+
+        window.logoutUsuario = () => {
+            customConfirm("Cerrar Sesión", "¿Estás seguro de que quieres salir de tu cuenta?", () => {
+                signOut(auth);
+            }, "bg-brand-600", "fa-arrow-right-from-bracket");
+        };
+
+        // Soporte para previsualización Canvas (Auto Login)
+        const initAuthEnv = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            }
+        };
+        initAuthEnv();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('flex');
+                initDataListener();
+            } else {
+                currentUserId = null;
+                if (unsubscribeSnapshot) unsubscribeSnapshot();
+                document.getElementById('login-container').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('flex');
+            }
+        });
+
+        // --- SISTEMA DE DATOS EN LA NUBE ---
+        function getDocRef() {
+            // Ruta requerida para asegurar compatibilidad y estructura correcta
+            return doc(db, 'artifacts', appId, 'users', currentUserId, 'gastroplan', 'estado');
+        }
+
+        function initDataListener() {
+            const docRef = getDocRef();
+            unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    appDB = docSnap.data();
+                    
+                    // Integridad de datos en caso de nuevas versiones
+                    if (!appDB.categorias) appDB.categorias = SEED_DATA.categorias;
+                    if (!appDB.listaExtra) appDB.listaExtra = [];
+                    if (!appDB.historialExtra) appDB.historialExtra = SEED_DATA.historialExtra;
+                    if (!appDB.planSemanal || !appDB.planSemanal.lunes) appDB.planSemanal = JSON.parse(JSON.stringify(SEED_DATA.planSemanal));
+                    
+                    actualizarUI();
+                } else {
+                    // Nuevo usuario, creamos los datos base
+                    appDB = JSON.parse(JSON.stringify(SEED_DATA));
+                    window.saveState();
+                }
+            }, (error) => {
+                showToast("Error de sincronización con la nube", "error");
+            });
+        }
+
+        window.saveState = () => {
+            if (!currentUserId || !appDB) return;
+            setDoc(getDocRef(), appDB).catch(e => showToast("Error al guardar en la nube", "error"));
+        };
+
+        // --- LOGICA DE LA APLICACIÓN (Mapeada a window para usarse desde HTML) ---
+        
+        window.reiniciarApp = () => {
+            customConfirm("Restablecer de fábrica", "¿Borrar todos tus datos y volver al estado inicial? Esta acción no se puede deshacer.", () => {
+                appDB = JSON.parse(JSON.stringify(SEED_DATA));
+                checkedItems = {};
+                window.saveState();
+                showToast("Datos restablecidos.", "info");
+                window.switchTab('dashboard');
+            }, "bg-red-600", "fa-triangle-exclamation", "bg-red-100 text-red-600");
+        };
+
+        function checkRecipeCocinable(receta) {
+            let totalReq = Object.keys(receta.ingredientes).length;
+            if (totalReq === 0) return { porcentaje: 100, faltantes: [], correctos: 0 };
+            let correctos = 0; let faltantes = [];
+            for (const [ingReq, cantReq] of Object.entries(receta.ingredientes)) {
+                let despInfo = appDB.despensa[ingReq];
+                if (despInfo && despInfo.qty >= cantReq) correctos++;
+                else faltantes.push({ nombre: ingReq, falta: parseFloat((cantReq - (despInfo ? despInfo.qty : 0)).toFixed(2)), unit: despInfo ? despInfo.unit : '' });
+            }
+            return { porcentaje: (correctos / totalReq) * 100, faltantes, correctos, total: totalReq };
+        }
+
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.desk-tab').forEach(btn => {
+                btn.classList.remove('active-tab', 'font-bold', 'text-brand-700', 'bg-brand-50');
+                btn.classList.add('font-medium', 'text-slate-600');
+            });
+            document.querySelectorAll('.mob-tab').forEach(btn => {
+                btn.classList.remove('text-brand-600'); btn.classList.add('text-slate-400');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeDeskBtn = document.getElementById(`desk-tab-${tabId}`);
+            if (activeDeskBtn) {
+                activeDeskBtn.classList.remove('text-slate-600', 'font-medium');
+                activeDeskBtn.classList.add('active-tab', 'font-bold', 'text-brand-700', 'bg-brand-50');
+            }
+            const activeMobBtn = document.getElementById(`mob-tab-${tabId}`);
+            if (activeMobBtn) {
+                activeMobBtn.classList.remove('text-slate-400'); activeMobBtn.classList.add('text-brand-600');
+            }
+            activeTab = tabId;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            actualizarUI();
+        };
+
+        function actualizarUI() {
+            if(!appDB) return;
+            populateDatalist();
+            populatePantryDatalist();
+
+            document.getElementById('count-recetas').innerText = appDB.recetas.length;
+            document.getElementById('count-despensa').innerText = Object.values(appDB.despensa).filter(i => i.qty > 0).length;
+            
+            let itemsToBuy = appDB.listaExtra.length;
+            let reqs = {};
+            for (let day of DIAS_SEMANA) {
+                ['almuerzo', 'cena'].forEach(meal => {
+                    let rName = appDB.planSemanal[day][meal];
+                    if (rName) {
+                        let r = appDB.recetas.find(x => x.nombre === rName);
+                        if(r) Object.entries(r.ingredientes).forEach(([i,c]) => reqs[i] = (reqs[i]||0) + c);
+                    }
+                });
+            }
+            Object.entries(reqs).forEach(([i,c]) => {
+                let disp = appDB.despensa[i] ? appDB.despensa[i].qty : 0;
+                if(disp < c) itemsToBuy++;
+            });
+            
+            document.getElementById('count-compras').innerText = itemsToBuy;
+            
+            const badge = document.getElementById('mob-badge-compras');
+            if (itemsToBuy > 0) { badge.innerText = itemsToBuy > 9 ? '9+' : itemsToBuy; badge.classList.remove('hidden'); } 
+            else badge.classList.add('hidden');
+
+            if (activeTab === 'dashboard') { renderDashboard(); window.obtenerSugerencia(); }
+            else if (activeTab === 'recetas') window.renderRecetasTab();
+            else if (activeTab === 'despensa') window.renderPantryTab();
+            else if (activeTab === 'planificador') window.renderPlanificadorTab();
+            else if (activeTab === 'compras') window.renderComprasTab();
+        }
+
+        function renderDashboard() {
+            document.getElementById('dash-recipes-count').innerText = appDB.recetas.length;
+            document.getElementById('dash-pantry-count').innerText = Object.values(appDB.despensa).filter(i => i.qty > 0).length;
+            document.getElementById('dash-shopping-count').innerText = document.getElementById('count-compras').innerText;
+            let cookableCount = appDB.recetas.filter(r => checkRecipeCocinable(r).porcentaje === 100).length;
+            document.getElementById('dash-cookable-count').innerText = cookableCount;
+        }
+
+        let sugerenciaActual = null;
+        window.obtenerSugerencia = () => {
+            if (!appDB || appDB.recetas.length === 0) return;
+            sugerenciaActual = appDB.recetas[Math.floor(Math.random() * appDB.recetas.length)];
+            document.getElementById('suggestion-title').innerText = sugerenciaActual.nombre;
+            document.getElementById('suggestion-ingredients-preview').innerText = Object.keys(sugerenciaActual.ingredientes).join(' • ');
+            
+            const check = checkRecipeCocinable(sugerenciaActual);
+            const badge = document.getElementById('suggestion-badge');
+            if (check.porcentaje === 100) badge.innerHTML = `<span class="bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-xl font-bold text-xs"><i class="fa-solid fa-check mr-1"></i> Stock completo</span>`;
+            else badge.innerHTML = `<span class="bg-amber-500/20 text-amber-300 px-4 py-2 rounded-xl font-bold text-xs"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Faltan ${check.faltantes.length} ing.</span>`;
+
+            document.getElementById('btn-add-suggestion-plan').onclick = () => window.openPickSlotModal(sugerenciaActual.nombre);
+        };
+
+        window.filterRecipeType = (type) => {
+            recipeFilterType = type;
+            document.querySelectorAll('.recipe-filter-btn').forEach(btn => {
+                btn.className = "recipe-filter-btn px-5 py-2.5 rounded-xl text-sm font-bold bg-slate-50 text-slate-600 whitespace-nowrap transition-all";
+            });
+            document.getElementById(`filter-type-${type.toLowerCase()}`).className = "recipe-filter-btn active-filter px-5 py-2.5 rounded-xl text-sm font-bold bg-brand-600 text-white whitespace-nowrap shadow-md transition-all";
+            window.renderRecetasTab();
+        };
+
+        window.renderRecetasTab = () => {
+            const searchVal = document.getElementById('search-recipes').value.toLowerCase();
+            const grid = document.getElementById('recetas-grid');
+            let query = appDB.recetas;
+            if (recipeFilterType !== 'todos') query = query.filter(r => r.tipo === recipeFilterType || r.tipo === 'Ambos');
+            if (searchVal) query = query.filter(r => r.nombre.toLowerCase().includes(searchVal) || Object.keys(r.ingredientes).some(i => i.toLowerCase().includes(searchVal)));
+
+            if (query.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 text-lg">No hay recetas que coincidan.</div>`;
+                return;
+            }
+
+            grid.innerHTML = query.map(receta => {
+                const idx = appDB.recetas.findIndex(r => r.nombre === receta.nombre);
+                const check = checkRecipeCocinable(receta);
+                return `
+                <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col active:scale-95 transition-transform group">
+                    <div class="p-6 flex-grow cursor-pointer" onclick="window.openRecipeDetail(${idx})">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg inline-block mb-3">${receta.tipo}</span>
+                        <h3 class="font-black text-slate-900 text-xl leading-tight group-hover:text-brand-600 transition-colors">${receta.nombre}</h3>
+                    </div>
+                    <div class="px-6 py-4 border-t border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-bold ${check.porcentaje===100 ? 'text-emerald-600' : 'text-amber-500'} bg-white px-3 py-1.5 rounded-xl shadow-sm">
+                            <i class="fa-solid ${check.porcentaje===100 ? 'fa-check-circle' : 'fa-circle-half-stroke'}"></i>
+                            ${check.correctos}/${check.total} Ing.
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.openRecipeModal(${idx}); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-brand-600 rounded-xl shadow-sm border border-slate-100 transition-colors active:scale-95"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="window.deleteRecipe(${idx}); event.stopPropagation();" class="w-10 h-10 flex items-center justify-center bg-white text-slate-400 hover:text-red-500 rounded-xl shadow-sm border border-slate-100 transition-colors active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
+        window.openRecipeModal = (index = -1) => {
+            const container = document.getElementById('recipe-ingredients-rows');
+            container.innerHTML = '';
+            const modal = document.getElementById('modal-recipe');
+            const content = document.getElementById('modal-recipe-content');
+            
+            if (index === -1) {
+                document.getElementById('modal-recipe-title').innerText = "Nueva Receta";
+                document.getElementById('recipe-form').reset();
+                document.getElementById('recipe-edit-index').value = "";
+                window.addRecipeIngredientRow(); 
+            } else {
+                document.getElementById('modal-recipe-title').innerText = "Editar Receta";
+                const r = appDB.recetas[index];
+                document.getElementById('recipe-edit-index').value = index;
+                document.getElementById('recipe-name').value = r.nombre;
+                document.getElementById('recipe-type').value = r.tipo;
+                document.getElementById('recipe-instructions').value = r.instrucciones || "";
+                Object.entries(r.ingredientes).forEach(([ing, cant]) => window.addRecipeIngredientRow(ing, cant));
+            }
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('translate-y-full', 'scale-95'); }, 10);
+        };
+
+        window.closeRecipeModal = () => { 
+            const modal = document.getElementById('modal-recipe');
+            const content = document.getElementById('modal-recipe-content');
+            content.classList.add('translate-y-full', 'md:scale-95'); modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        };
+
+        window.addRecipeIngredientRow = (ingName = '', qty = 1) => {
+            const rowId = 'row-' + Date.now() + Math.random().toString(36).substr(2, 5);
+            const opts = Object.keys(appDB.despensa).sort().map(i => `<option value="${i}" ${i===ingName?'selected':''}>${i} (${appDB.despensa[i].unit})</option>`).join('');
+            document.getElementById('recipe-ingredients-rows').insertAdjacentHTML('beforeend', `
+                <div id="${rowId}" class="flex gap-3 items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                    <select required class="ing-select flex-grow bg-transparent text-base md:text-sm font-semibold px-2 py-2 outline-none w-1/2">
+                        <option value="">Seleccionar...</option>${opts}
+                    </select>
+                    <input type="number" step="any" min="0.1" value="${qty}" required class="ing-qty w-20 bg-slate-50 border border-slate-200 rounded-xl px-2 py-3 text-base md:text-sm text-center font-bold outline-none focus:ring-2 focus:ring-brand-500">
+                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-red-400 hover:text-red-600 bg-red-50 w-10 h-10 rounded-xl flex items-center justify-center active:scale-95"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `);
+        };
+
+        window.saveRecipe = (e) => {
+            e.preventDefault();
+            const idx = document.getElementById('recipe-edit-index').value;
+            const name = document.getElementById('recipe-name').value.trim();
+            let ings = {};
+            Array.from(document.getElementById('recipe-ingredients-rows').children).forEach(row => {
+                const s = row.querySelector('.ing-select').value;
+                const q = parseFloat(row.querySelector('.ing-qty').value);
+                if (s && q) ings[s] = q;
+            });
+            if (Object.keys(ings).length === 0) return showToast("Añade al menos un ingrediente", "error");
+            const data = { nombre: name, tipo: document.getElementById('recipe-type').value, ingredientes: ings, instrucciones: document.getElementById('recipe-instructions').value.trim() };
+            if (idx === "") {
+                if (appDB.recetas.some(r => r.nombre.toLowerCase() === name.toLowerCase())) return showToast("Nombre duplicado", "error");
+                appDB.recetas.push(data);
+            } else { appDB.recetas[parseInt(idx)] = data; }
+            window.saveState(); window.closeRecipeModal(); window.renderRecetasTab(); showToast("Receta guardada", "success");
+        };
+
+        window.deleteRecipe = (idx) => {
+            customConfirm("Eliminar Receta", "¿Estás seguro de que deseas eliminar este plato de forma permanente?", () => {
+                appDB.recetas.splice(idx, 1); window.saveState(); window.renderRecetasTab(); showToast("Receta eliminada", "info");
+            }, "bg-red-600", "fa-trash-can", "bg-red-100 text-red-600");
+        };
+
+        window.openRecipeDetail = (idx) => {
+            const r = appDB.recetas[idx];
+            document.getElementById('detail-recipe-name').innerText = r.nombre;
+            document.getElementById('detail-recipe-type').innerText = r.tipo;
+            document.getElementById('detail-recipe-ingredients').innerHTML = Object.entries(r.ingredientes).map(([ing, cant]) => {
+                let d = appDB.despensa[ing]; let disp = d ? d.qty : 0; let unit = d ? d.unit : ''; let ok = disp >= cant;
+                return `<li class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><span class="font-bold text-slate-700 flex items-center gap-3"><span class="w-8 h-8 rounded-full flex items-center justify-center ${ok ? 'bg-emerald-100 text-emerald-500' : 'bg-red-100 text-red-500'}"><i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}"></i></span>${ing}</span><span class="text-base font-black text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">${cant} <span class="text-xs font-semibold text-slate-400">${unit}</span></span></li>`;
+            }).join('');
+            document.getElementById('detail-recipe-instructions').innerText = r.instrucciones || "No se han añadido pasos de preparación.";
+            document.getElementById('modal-recipe-detail').classList.remove('hidden');
+        };
+        window.closeRecipeDetailModal = () => { document.getElementById('modal-recipe-detail').classList.add('hidden'); };
+
+        window.renderPantryTab = () => {
+            document.getElementById('categories-list').innerHTML = `<button onclick="window.pantrySetCat('Todos')" class="px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all shadow-sm ${pantryActiveCategory==='Todos'?'bg-slate-800 text-white':'bg-slate-50 text-slate-600 hover:bg-slate-100'}">Todos</button>` +
+                appDB.categorias.map(c => `<button onclick="window.pantrySetCat('${c}')" class="px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all shadow-sm ${pantryActiveCategory===c?'bg-slate-800 text-white':'bg-slate-50 text-slate-600 hover:bg-slate-100'}">${c}</button>`).join('');
+
+            let entries = Object.entries(appDB.despensa);
+            if (pantryActiveCategory !== 'Todos') entries = entries.filter(([_, info]) => info.category === pantryActiveCategory);
+            entries = entries.filter(([_, info]) => info.qty > 0);
+
+            const container = document.getElementById('pantry-cards-container');
+            if(entries.length === 0) { container.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 text-lg">No hay productos en esta categoría con stock.</div>`; return; }
+
+            container.innerHTML = entries.sort((a,b)=>a[0].localeCompare(b[0])).map(([name, i]) => `
+                <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col gap-4 relative">
+                    <div class="flex justify-between items-start pr-12"><div><h4 class="font-black text-slate-800 text-xl leading-tight mb-1">${name}</h4><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md">${i.category}</span></div></div>
+                    <div class="absolute top-4 right-4"><button onclick="window.openIngredientModal('${name}')" class="w-12 h-12 text-slate-400 hover:text-brand-600 bg-slate-50 hover:bg-brand-50 rounded-2xl transition-colors flex items-center justify-center active:scale-95"><i class="fa-solid fa-pen text-lg"></i></button></div>
+                    <div class="flex justify-between items-center bg-slate-50/80 p-3 rounded-2xl mt-auto border border-slate-100/50">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">En casa</div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="window.changeStock('${name}', -1)" class="w-12 h-12 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:text-brand-600 font-black text-2xl flex items-center justify-center transition-transform active:scale-90">-</button>
+                            <div class="flex flex-col items-center w-12"><span class="text-xl font-black text-slate-900">${i.qty}</span><span class="text-[9px] font-bold text-slate-400 uppercase">${i.unit}</span></div>
+                            <button onclick="window.changeStock('${name}', 1)" class="w-12 h-12 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-600 hover:text-brand-600 font-black text-2xl flex items-center justify-center transition-transform active:scale-90">+</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        };
+        
+        window.pantrySetCat = (cat) => { pantryActiveCategory = cat; window.renderPantryTab(); };
+
+        window.changeStock = (name, amount) => {
+            let item = appDB.despensa[name]; if (!item) return;
+            let step = (item.unit === 'g' || item.unit === 'ml') ? 50 : 1;
+            item.qty = Math.max(0, parseFloat((item.qty + (amount * step)).toFixed(2)));
+            window.saveState(); window.renderPantryTab(); actualizarUI();
+        };
+
+        function populatePantryDatalist() {
+            const list = document.getElementById('pantry-items-datalist');
+            if (list && appDB) list.innerHTML = Object.keys(appDB.despensa).sort().map(name => `<option value="${name}">`).join('');
+        }
+
+        window.addPantryItemQuick = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('pantry-add-name').value.trim();
+            const qty = parseFloat(document.getElementById('pantry-add-qty').value) || 0;
+            if(!name || qty <= 0) return;
+            if (appDB.despensa[name]) {
+                appDB.despensa[name].qty = parseFloat((appDB.despensa[name].qty + qty).toFixed(2));
+                window.saveState();
+                document.getElementById('pantry-add-name').value = ''; document.getElementById('pantry-add-qty').value = '1';
+                actualizarUI(); showToast(`+${qty} ${appDB.despensa[name].unit} añadido a ${name}`, "success");
+            } else { window.openIngredientModal('', name, qty); }
+        };
+
+        window.openIngredientModal = (name = '', prefilledName = '', prefilledQty = 1) => {
+            document.getElementById('ingredient-category').innerHTML = appDB.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
+            if (name) {
+                const i = appDB.despensa[name];
+                document.getElementById('modal-ingredient-title').innerText = "Editar";
+                document.getElementById('ingredient-edit-key').value = name;
+                document.getElementById('ingredient-name').value = name;
+                document.getElementById('ingredient-category').value = i.category;
+                document.getElementById('ingredient-unit').value = i.unit;
+                document.getElementById('ingredient-qty').value = i.qty;
+                document.getElementById('ingredient-format').value = i.formatoCompra || 1;
+            } else {
+                document.getElementById('modal-ingredient-title').innerText = "Añadir a Catálogo";
+                document.getElementById('ingredient-form').reset();
+                document.getElementById('ingredient-edit-key').value = "";
+                if (prefilledName) document.getElementById('ingredient-name').value = prefilledName;
+                document.getElementById('ingredient-qty').value = prefilledQty;
+            }
+            document.getElementById('modal-ingredient').classList.remove('hidden');
+        };
+        window.closeIngredientModal = () => { document.getElementById('modal-ingredient').classList.add('hidden'); };
+
+        window.saveIngredient = (e) => {
+            e.preventDefault();
+            const editKey = document.getElementById('ingredient-edit-key').value;
+            const name = document.getElementById('ingredient-name').value.trim();
+            const data = { category: document.getElementById('ingredient-category').value, unit: document.getElementById('ingredient-unit').value, qty: parseFloat(document.getElementById('ingredient-qty').value) || 0, formatoCompra: parseFloat(document.getElementById('ingredient-format').value) || 1 };
+            if (editKey && editKey !== name) {
+                delete appDB.despensa[editKey];
+                appDB.recetas.forEach(r => { if(r.ingredientes[editKey]) { r.ingredientes[name] = r.ingredientes[editKey]; delete r.ingredientes[editKey]; } });
+            } else if (!editKey && appDB.despensa[name]) { return showToast("El ingrediente ya existe", "error"); }
+            appDB.despensa[name] = data;
+            window.saveState(); window.closeIngredientModal(); populatePantryDatalist(); populateDatalist();
+            document.getElementById('pantry-add-name').value = ''; document.getElementById('pantry-add-qty').value = '1';
+            actualizarUI(); showToast("Guardado", "success");
+        };
+
+        window.renderPlanificadorTab = () => {
+            const grid = document.getElementById('plan-days-grid');
+            let html = '';
+            for (let day of DIAS_SEMANA) {
+                const dayName = NOMBRES_DIAS[day];
+                const almuerzo = appDB.planSemanal[day].almuerzo;
+                const cena = appDB.planSemanal[day].cena;
+                const renderSlot = (mealName, recipeName, mealType) => {
+                    if (recipeName) {
+                        return `<div><div class="text-[10px] font-black uppercase text-slate-400 mb-2 flex justify-between items-center"><span>${mealName}</span><div class="flex gap-2"><button onclick="window.cocinarRecetaSlot('${day}', '${mealType}')" class="bg-emerald-100 text-emerald-600 hover:bg-emerald-500 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors active:scale-95"><i class="fa-solid fa-check"></i></button><button onclick="window.quitarDelPlan('${day}', '${mealType}')" class="bg-red-50 text-red-400 hover:bg-red-500 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors active:scale-95"><i class="fa-solid fa-xmark"></i></button></div></div><div class="bg-brand-50 border border-brand-200 p-4 rounded-2xl shadow-sm text-base font-bold text-brand-900 group"><span class="block truncate">${recipeName}</span></div></div>`;
+                    } else {
+                        return `<div><div class="text-[10px] font-black uppercase text-slate-400 mb-2">${mealName}</div><button onclick="window.openSelectRecipeModal('${day}', '${mealType}')" class="w-full border-2 border-dashed border-slate-200 rounded-2xl p-4 text-base font-bold text-slate-400 hover:text-brand-600 hover:border-brand-400 hover:bg-brand-50 transition-colors text-left flex items-center justify-between active:scale-95 bg-white"><span>Añadir plato...</span><div class="w-8 h-8 bg-slate-50 text-slate-300 rounded-lg flex items-center justify-center"><i class="fa-solid fa-plus text-sm"></i></div></button></div>`;
+                    }
+                };
+                html += `<div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col"><div class="bg-slate-900 p-4 text-center"><span class="font-black text-white uppercase tracking-widest text-sm">${dayName}</span></div><div class="p-5 md:p-6 space-y-6 flex-grow bg-slate-50/30">${renderSlot('Almuerzo', almuerzo, 'almuerzo')}${renderSlot('Cena', cena, 'cena')}</div></div>`;
+            }
+            grid.innerHTML = html;
+        };
+
+        window.cocinarRecetaSlot = (day, mealType) => {
+            const rName = appDB.planSemanal[day][mealType];
+            const receta = appDB.recetas.find(r => r.nombre === rName);
+            if(!receta) return;
+            customConfirm("Plato Cocinado", `¿Confirmas que has preparado "${rName}"?\nDescontaremos los ingredientes de tu despensa.`, () => {
+                Object.entries(receta.ingredientes).forEach(([ing, cant]) => { if(appDB.despensa[ing]) appDB.despensa[ing].qty = Math.max(0, parseFloat((appDB.despensa[ing].qty - cant).toFixed(2))); });
+                appDB.planSemanal[day][mealType] = ""; window.saveState(); actualizarUI(); showToast(`¡Buen provecho! Despensa actualizada.`, "success");
+            }, "bg-emerald-600", "fa-fire-burner", "bg-emerald-100 text-emerald-600");
+        };
+
+        window.quitarDelPlan = (day, mealType) => { appDB.planSemanal[day][mealType] = ""; window.saveState(); window.renderPlanificadorTab(); actualizarUI(); };
+
+        window.limpiarPlan = () => {
+            customConfirm("Vaciar Plan", "¿Estás seguro de que quieres eliminar todos los platos de tu semana?", () => {
+                for (let day of DIAS_SEMANA) { appDB.planSemanal[day].almuerzo = ""; appDB.planSemanal[day].cena = ""; }
+                window.saveState(); window.renderPlanificadorTab(); actualizarUI(); showToast("Plan semanal vaciado", "info");
+            }, "bg-red-600", "fa-trash-can", "bg-red-100 text-red-600");
+        };
+
+        let selectingForSlot = { day: null, mealType: null };
+        window.openSelectRecipeModal = (day, mealType) => {
+            selectingForSlot = { day, mealType }; document.getElementById('select-recipe-search').value = '';
+            document.getElementById('modal-select-title-context').innerText = `${NOMBRES_DIAS[day]} - ${mealType === 'almuerzo' ? 'Almuerzo' : 'Cena'}`;
+            window.filterSelectRecipeList(); document.getElementById('modal-select-recipe').classList.remove('hidden');
+        };
+        window.closeSelectRecipeModal = () => { document.getElementById('modal-select-recipe').classList.add('hidden'); };
+
+        window.filterSelectRecipeList = () => {
+            const v = document.getElementById('select-recipe-search').value.toLowerCase();
+            const list = document.getElementById('select-recipe-list');
+            list.innerHTML = appDB.recetas.filter(r => r.nombre.toLowerCase().includes(v)).map(r => `<div onclick="window.assignRecipeToSlot('${r.nombre}')" class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl hover:border-brand-400 hover:bg-brand-50 cursor-pointer transition-all active:scale-95 shadow-sm"><div><div class="font-bold text-base text-slate-800">${r.nombre}</div><div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">${r.tipo}</div></div><div class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center"><i class="fa-solid fa-arrow-right"></i></div></div>`).join('');
+            if(list.innerHTML === '') list.innerHTML = `<div class="text-center py-8 text-slate-400 text-base">No hay resultados.</div>`;
+        };
+
+        window.assignRecipeToSlot = (recipeName) => { appDB.planSemanal[selectingForSlot.day][selectingForSlot.mealType] = recipeName; window.saveState(); window.closeSelectRecipeModal(); window.renderPlanificadorTab(); actualizarUI(); };
+
+        let assigningRecipeName = null;
+        window.openPickSlotModal = (recipeName) => { assigningRecipeName = recipeName; document.getElementById('pick-slot-recipe-name').innerText = recipeName; document.getElementById('modal-pick-slot').classList.remove('hidden'); };
+        window.closePickSlotModal = () => { document.getElementById('modal-pick-slot').classList.add('hidden'); };
+        window.confirmPickSlot = () => {
+            const day = document.getElementById('pick-slot-day').value; const meal = document.getElementById('pick-slot-meal').value;
+            appDB.planSemanal[day][meal] = assigningRecipeName; window.saveState(); window.closePickSlotModal(); actualizarUI(); showToast(`${assigningRecipeName} añadido`, "success");
+        };
+
+        window.renderComprasTab = () => {
+            let reqs = {};
+            for (let day of DIAS_SEMANA) {
+                ['almuerzo', 'cena'].forEach(meal => {
+                    let rName = appDB.planSemanal[day][meal];
+                    if (rName) { let r = appDB.recetas.find(x => x.nombre === rName); if(r) Object.entries(r.ingredientes).forEach(([i,c]) => reqs[i] = (reqs[i]||0) + c); }
+                });
+            }
+
+            let consolidadoPorCat = {};
+            Object.entries(reqs).forEach(([ing, cantReq]) => {
+                let dbInfo = appDB.despensa[ing]; let disp = dbInfo ? dbInfo.qty : 0;
+                if(disp < cantReq) {
+                    let falta = cantReq - disp; let form = (dbInfo && dbInfo.formatoCompra) ? dbInfo.formatoCompra : 1; let paquetes = Math.ceil(falta / form); let cat = dbInfo ? dbInfo.category : 'Otros';
+                    if(!consolidadoPorCat[cat]) consolidadoPorCat[cat] = [];
+                    consolidadoPorCat[cat].push({ nombre: ing, paquetes: paquetes, desc: `${paquetes} envase/s de ${form}${dbInfo?dbInfo.unit:''} (Recetas)`, qtyParaAdd: paquetes*form, isExtra: false });
+                }
+            });
+
+            appDB.listaExtra.forEach((ex) => {
+                let dbInfo = appDB.despensa[ex.nombre]; let cat = dbInfo ? dbInfo.category : 'Otros';
+                if(!consolidadoPorCat[cat]) consolidadoPorCat[cat] = [];
+                consolidadoPorCat[cat].push({ nombre: ex.nombre, paquetes: ex.qty, desc: `${ex.qty} uds (Manual)`, qtyParaAdd: ex.qty, isExtra: true });
+            });
+
+            const cont = document.getElementById('shopping-list-container');
+            const btn = document.getElementById('btn-completar-compra');
+
+            if (Object.keys(consolidadoPorCat).length === 0) {
+                cont.innerHTML = `<div class="text-center py-16 text-emerald-600 bg-emerald-50 rounded-3xl border border-emerald-100 shadow-inner"><i class="fa-solid fa-clipboard-check text-5xl mb-4"></i><br><span class="font-black text-2xl">¡Todo listo!</span><p class="text-base font-medium text-emerald-600/80 mt-2">No hay compras pendientes.</p></div>`;
+                btn.disabled = true; return;
+            }
+
+            btn.disabled = false;
+            cont.innerHTML = Object.keys(consolidadoPorCat).sort().map(cat => `
+                <div class="mb-8 last:mb-0"><h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 bg-slate-50 p-2 px-4 rounded-xl inline-flex"><i class="fa-solid fa-tag text-slate-300"></i> ${cat}</h4>
+                    <div class="space-y-3">
+                        ${consolidadoPorCat[cat].map(i => {
+                            const isChecked = checkedItems[i.nombre] ? 'checked' : '';
+                            const checkedStyle = checkedItems[i.nombre] ? 'opacity-40 line-through scale-[0.99] border-brand-200 bg-brand-50/20' : 'border-slate-100 bg-white';
+                            return `<label class="flex items-start gap-4 p-4 md:p-5 border-2 rounded-2xl cursor-pointer hover:border-brand-400 hover:shadow-md transition-all active:scale-[0.98] ${checkedStyle}"><input type="checkbox" ${isChecked} onchange="window.toggleCheckedItem('${i.nombre}', ${i.qtyParaAdd}, ${i.isExtra})" class="mt-1 w-7 h-7 md:w-6 md:h-6 text-brand-600 rounded-lg border-slate-300 focus:ring-brand-500 cursor-pointer"><div class="flex-grow"><div class="font-black text-base md:text-lg text-slate-900 flex justify-between items-center"><span class="${checkedItems[i.nombre] ? 'line-through text-slate-500' : ''}">${i.nombre}</span><span class="bg-brand-100 text-brand-700 text-xs font-black px-3 py-1 rounded-lg border border-brand-200/50">+${i.paquetes}</span></div><div class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">${i.desc}</div></div></label>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.toggleCheckedItem = (nombre, addQty, isExtra) => { if (checkedItems[nombre]) delete checkedItems[nombre]; else checkedItems[nombre] = { qty: addQty, isExtra: isExtra }; window.renderComprasTab(); };
+
+        function populateDatalist() {
+            const list = document.getElementById('extra-items-historial');
+            if (list && appDB) list.innerHTML = Array.from(new Set([...Object.keys(appDB.despensa), ...appDB.historialExtra])).sort().map(h => `<option value="${h}">`).join('');
+        }
+
+        window.addExtraShoppingItem = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('extra-item-name').value.trim();
+            const qty = parseInt(document.getElementById('extra-item-qty').value) || 1;
+            if(!name) return;
+            appDB.listaExtra.push({nombre: name, qty: qty});
+            if(!appDB.historialExtra.includes(name)) appDB.historialExtra.push(name);
+            window.saveState(); populateDatalist(); document.getElementById('extra-item-name').value = ''; document.getElementById('extra-item-qty').value = '1'; actualizarUI(); showToast(`Añadido: ${qty} de ${name}`, "success");
+        };
+
+        window.completarCompra = () => {
+            const listKeys = Object.keys(checkedItems);
+            if (listKeys.length === 0) return showToast("Marca algún producto tachado antes de completar", "error");
+            customConfirm("Completar Compra", `¿Quieres guardar en la despensa los ${listKeys.length} productos tachados?\nSe sumarán al stock y se eliminarán de esta lista.`, () => {
+                listKeys.forEach(nombre => {
+                    const item = checkedItems[nombre];
+                    if (appDB.despensa[nombre]) appDB.despensa[nombre].qty = parseFloat((appDB.despensa[nombre].qty + item.qty).toFixed(2));
+                    else appDB.despensa[nombre] = { category: 'Otros', unit: 'uds', qty: item.qty, formatoCompra: 1 };
+                    if (item.isExtra) { let idx = appDB.listaExtra.findIndex(e => e.nombre === nombre); if (idx !== -1) appDB.listaExtra.splice(idx, 1); }
+                });
+                checkedItems = {}; window.saveState(); actualizarUI(); populatePantryDatalist(); populateDatalist(); showToast("¡Compra registrada en la despensa!", "success");
+            }, "bg-brand-600", "fa-basket-shopping", "bg-brand-100 text-brand-600");
+        };
+
+        window.copiarListaAlPortapapeles = () => {
+            let txt = "🛒 LISTA COMPRA GASTROPLAN:\n\n"; let reqs = {};
+            for (let day of DIAS_SEMANA) { ['almuerzo', 'cena'].forEach(meal => { let rName = appDB.planSemanal[day][meal]; if (rName) { let r = appDB.recetas.find(x => x.nombre === rName); if(r) Object.entries(r.ingredientes).forEach(([i,c]) => reqs[i] = (reqs[i]||0) + c); } }); }
+            Object.entries(reqs).forEach(([ing, c]) => { let d = appDB.despensa[ing]; if(d && d.qty < c) { let form = d.formatoCompra || 1; let paq = Math.ceil((c - d.qty)/form); txt += `- [ ] ${ing}: ${paq} envase/s (de ${form}${d.unit})\n`; } });
+            if(appDB.listaExtra.length) { txt += "\n📎 EXTRAS:\n"; appDB.listaExtra.forEach(ex => txt += `- [ ] ${ex.nombre}: ${ex.qty} uds\n`); }
+            if(txt === "🛒 LISTA COMPRA GASTROPLAN:\n\n") return showToast("Lista vacía", "info");
+            const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); showToast("Copiada al portapapeles", "success"); } catch(e) { showToast("Error al copiar", "error"); }
+            document.body.removeChild(ta);
+        };
+
+        function showToast(msg, type="success") {
+            const c = document.getElementById('toast-container'); const id = 'toast-'+Date.now();
+            let styles = type==='success' ? "bg-slate-900 text-white" : type==='error' ? "bg-red-600 text-white" : "bg-sky-600 text-white";
+            let icon = type==='success' ? "fa-check" : type==='error' ? "fa-xmark" : "fa-info";
+            c.insertAdjacentHTML('beforeend', `<div id="${id}" class="flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform -translate-y-4 md:translate-y-4 opacity-0 pointer-events-auto ${styles} text-sm font-bold"><i class="fa-solid ${icon} text-lg"></i> ${msg}</div>`);
+            setTimeout(()=> { let el = document.getElementById(id); if(el) el.classList.remove('-translate-y-4', 'md:translate-y-4', 'opacity-0'); }, 10);
+            setTimeout(()=> { let el = document.getElementById(id); if(el) { el.classList.add('-translate-y-4', 'md:translate-y-4', 'opacity-0'); setTimeout(()=>el.remove(),300); } }, 3000);
+        }
+
+        function customConfirm(title, msg, onConfirmCallback, confirmColorClass = 'bg-brand-600', icon = 'fa-circle-exclamation', iconColorClass = 'bg-slate-100 text-slate-600') {
+            document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-msg').innerText = msg;
+            const iconEl = document.getElementById('confirm-icon'); iconEl.className = `w-20 h-20 rounded-[2rem] mx-auto flex items-center justify-center text-4xl mb-6 ${iconColorClass}`; iconEl.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            const btnOk = document.getElementById('btn-confirm-ok'); btnOk.className = `w-full md:w-1/2 py-4 md:py-3.5 ${confirmColorClass} text-white rounded-2xl font-bold text-base md:text-sm shadow-lg transition-all active:scale-95 order-1 md:order-2`;
+            btnOk.onclick = () => { closeConfirmModal(); onConfirmCallback(); };
+            document.getElementById('btn-confirm-cancel').onclick = () => closeConfirmModal();
+            const modal = document.getElementById('modal-confirm'); const content = document.getElementById('modal-confirm-content');
+            modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+        }
+        function closeConfirmModal() { const modal = document.getElementById('modal-confirm'); const content = document.getElementById('modal-confirm-content'); content.classList.add('scale-95'); modal.classList.add('opacity-0'); setTimeout(() => modal.classList.add('hidden'), 300); }
+    </script>
+</body>
+</html>
