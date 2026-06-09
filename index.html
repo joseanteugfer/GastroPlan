@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <meta name="theme-color" content="#ffffff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <script>
         tailwind.config = {
             theme: {
@@ -257,7 +257,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <!-- Añadir rápido (Móvil y Escritorio) -->
+                    <!-- Añadir rápido -->
                     <div class="lg:col-span-1 space-y-4">
                         <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-lg relative overflow-hidden">
                             <div class="absolute -right-6 -bottom-6 opacity-10">
@@ -285,16 +285,16 @@
                             </form>
                         </div>
 
-                        <!-- Categorías (Filtros) -->
+                        <!-- Categorías -->
                         <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm flex overflow-x-auto no-scrollbar lg:flex-wrap lg:p-4 gap-2" id="categories-list">
-                            <!-- Categorías dinámicas -->
+                            <!-- Dinámico -->
                         </div>
                     </div>
 
                     <!-- Tarjetas de Ingredientes en Stock -->
                     <div class="lg:col-span-3">
                         <div id="pantry-cards-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                            <!-- Renderizado en JS -->
+                            <!-- Dinámico -->
                         </div>
                     </div>
                 </div>
@@ -313,7 +313,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="plan-days-grid">
-                    <!-- Días dinámicos cargados con JS -->
+                    <!-- Dinámico -->
                 </div>
             </section>
 
@@ -374,7 +374,7 @@
                             Para Comprar
                         </h3>
                         <div id="shopping-list-container" class="space-y-6">
-                            <!-- Categorías y productos -->
+                            <!-- Dinámico -->
                         </div>
                     </div>
                 </div>
@@ -383,13 +383,11 @@
         </main>
     </div>
 
-    <!-- Notificaciones flotantes tipo Toast (Móvil optimizado) -->
+    <!-- Notificaciones flotantes -->
     <div id="toast-container" class="fixed top-4 md:bottom-4 md:top-auto left-4 right-4 md:left-auto z-[70] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- DATALISTS PARA AUTOCOMPLETADOS -->
     <datalist id="pantry-items-datalist"></datalist>
 
-    <!-- MODALES -->
     <!-- Modal: Receta (Crear/Editar) -->
     <div id="modal-recipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end md:items-center justify-center hidden p-0 md:p-4 transition-opacity">
         <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-2xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden transform transition-transform translate-y-full md:translate-y-0" id="modal-recipe-content">
@@ -399,7 +397,6 @@
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
-            
             <form id="recipe-form" onsubmit="window.saveRecipe(event)" class="overflow-y-auto p-5 md:p-6 space-y-6 custom-scrollbar pb-safe">
                 <input type="hidden" id="recipe-edit-index" value="">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -587,14 +584,13 @@
     <!-- LOGICA FIREBASE Y APLICACIÓN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =======================================================================================
         // 🔥 TU_CONFIGURACION_DE_FIREBASE 
-        // Reemplaza los valores de 'usuarioConfig' con tu config real de Firebase Console.
         // =======================================================================================
-		const firebaseConfig = {
+        const firebaseConfig = {
   			apiKey: "AIzaSyCoWNsMvHHdaINMtoOI-GdV9fs79of7Fqk",
   			authDomain: "gastroplan-6bbad.firebaseapp.com",
   			projectId: "gastroplan-6bbad",
@@ -604,20 +600,25 @@
 		};
         // =======================================================================================
 
-        // Sistema para garantizar que funcione en el visualizador actual o en tu propio servidor
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : usuarioConfig;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gastroplan-app';
+        let app, auth, db;
+        
+        try {
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : usuarioConfig;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'gastroplan-app';
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (error) {
+            console.error("Error Crítico:", error);
+            document.getElementById('login-loading').innerHTML = '<span class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Error en las credenciales de Firebase. Revisa comillas (") y comas (,) en tu código.</span>';
+            document.getElementById('login-loading').classList.remove('hidden');
+        }
 
         let currentUserId = null;
         let unsubscribeSnapshot = null;
         let isGuestMode = localStorage.getItem('gastroplan_guest') === 'true';
 
-        // Estado Global (appDB) y variables de sesión
         let appDB = null;
         let activeTab = 'dashboard';
         let recipeFilterType = 'todos';
@@ -653,23 +654,26 @@
 
         // --- SISTEMA DE AUTENTICACIÓN ---
         window.loginWithGoogle = () => {
+            if (!auth) return alert("Firebase no está bien configurado.");
+            
             const loading = document.getElementById('login-loading');
             loading.classList.remove('hidden');
-            const provider = new GoogleAuthProvider();
+            loading.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Redirigiendo a Google...';
             
-            signInWithPopup(auth, provider).catch(error => {
+            const provider = new GoogleAuthProvider();
+            signInWithRedirect(auth, provider).catch(error => {
                 loading.classList.add('hidden');
-                console.error("Error de autenticación:", error);
-                
-                if (error.code === 'auth/unauthorized-domain') {
-                    showToast("Error: Debes añadir tu dominio en Firebase > Authentication > Settings > Authorized domains", "error");
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    showToast("Has cancelado el inicio de sesión", "info");
-                } else {
-                    showToast("Error de acceso: " + error.message, "error");
-                }
+                alert("Error de redirección: " + error.message);
             });
         };
+
+        if (auth) {
+            getRedirectResult(auth).catch((error) => {
+                const loading = document.getElementById('login-loading');
+                loading.classList.remove('hidden');
+                loading.innerHTML = '<span class="text-red-500 font-bold">Error de Google: ' + error.message + '</span>';
+            });
+        }
 
         window.loginAsGuest = () => {
             localStorage.setItem('gastroplan_guest', 'true');
@@ -692,7 +696,6 @@
             }, "bg-brand-600", "fa-arrow-right-from-bracket");
         };
 
-        // Soporte para previsualización Canvas (Auto Login)
         const initAuthEnv = async () => {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
@@ -707,7 +710,7 @@
                 document.getElementById('app-container').classList.add('flex');
                 initDataListener();
             }, 50);
-        } else {
+        } else if (auth) {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUserId = user.uid;
@@ -727,7 +730,6 @@
 
         // --- SISTEMA DE DATOS EN LA NUBE ---
         function getDocRef() {
-            // Ruta requerida para asegurar compatibilidad y estructura correcta
             return doc(db, 'artifacts', appId, 'users', currentUserId, 'gastroplan', 'estado');
         }
 
@@ -736,7 +738,6 @@
                 const localData = localStorage.getItem('gastroplan_data');
                 if (localData) {
                     appDB = JSON.parse(localData);
-                    // Integridad de datos en caso de nuevas versiones
                     if (!appDB.categorias) appDB.categorias = SEED_DATA.categorias;
                     if (!appDB.listaExtra) appDB.listaExtra = [];
                     if (!appDB.historialExtra) appDB.historialExtra = SEED_DATA.historialExtra;
@@ -753,16 +754,12 @@
             unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
                 if (docSnap.exists()) {
                     appDB = docSnap.data();
-                    
-                    // Integridad de datos en caso de nuevas versiones
                     if (!appDB.categorias) appDB.categorias = SEED_DATA.categorias;
                     if (!appDB.listaExtra) appDB.listaExtra = [];
                     if (!appDB.historialExtra) appDB.historialExtra = SEED_DATA.historialExtra;
                     if (!appDB.planSemanal || !appDB.planSemanal.lunes) appDB.planSemanal = JSON.parse(JSON.stringify(SEED_DATA.planSemanal));
-                    
                     actualizarUI();
                 } else {
-                    // Nuevo usuario, creamos los datos base
                     appDB = JSON.parse(JSON.stringify(SEED_DATA));
                     window.saveState();
                 }
@@ -780,8 +777,7 @@
             setDoc(getDocRef(), appDB).catch(e => showToast("Error al guardar en la nube", "error"));
         };
 
-        // --- LOGICA DE LA APLICACIÓN (Mapeada a window para usarse desde HTML) ---
-        
+        // --- LOGICA DE LA APLICACIÓN ---
         window.reiniciarApp = () => {
             customConfirm("Restablecer de fábrica", "¿Borrar todos tus datos y volver al estado inicial? Esta acción no se puede deshacer.", () => {
                 appDB = JSON.parse(JSON.stringify(SEED_DATA));
