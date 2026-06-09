@@ -536,7 +536,7 @@
         // --- SISTEMA DE DATOS MULTIUSUARIO (COMPARTIDO) ---
         // CLAVE: Todos leen y escriben en la colección "public/data", no en su user personal.
         function getSharedDocRef() {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'gastroplan');
+            return doc(db, 'artifacts', appId, 'public', 'data', 'gastroplan', 'estado');
         }
 
         function initDataListener() {
