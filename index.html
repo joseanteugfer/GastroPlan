@@ -317,7 +317,7 @@
                     <div>
                         <label class="block font-semibold text-slate-500 mb-1">Formato Venta Comercial</label>
                         <div class="flex items-center gap-1">
-                            <input type="number" id="alimento-formato" placeholder="500" class="w-full px-3 py-2 border rounded-xl text-slate-800 font-medium">
+                            <input type="number" id="alimento-formato" step="any" placeholder="500" class="w-full px-3 py-2 border rounded-xl text-slate-800 font-medium">
                             <span id="lbl-formato-unit" class="font-bold text-slate-400">g</span>
                         </div>
                     </div>
@@ -329,19 +329,19 @@
                     <div class="grid grid-cols-4 gap-2">
                         <div>
                             <label class="text-xs text-slate-500">Kcal</label>
-                            <input type="number" id="alimento-kcal" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
+                            <input type="number" id="alimento-kcal" step="any" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
                         </div>
                         <div>
                             <label class="text-xs text-slate-400 text-red-600 font-bold">Prot (g)</label>
-                            <input type="number" id="alimento-prot" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
+                            <input type="number" id="alimento-prot" step="any" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
                         </div>
                         <div>
                             <label class="text-xs text-slate-400 text-amber-600 font-bold">HC (g)</label>
-                            <input type="number" id="alimento-carbs" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
+                            <input type="number" id="alimento-carbs" step="any" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
                         </div>
                         <div>
                             <label class="text-xs text-slate-400 text-blue-600 font-bold">Grasa (g)</label>
-                            <input type="number" id="alimento-fat" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
+                            <input type="number" id="alimento-fat" step="any" class="w-full p-2 border rounded-xl text-slate-800 text-center font-bold">
                         </div>
                     </div>
                 </div>
@@ -375,7 +375,7 @@
                     <label class="block font-bold text-slate-800"><i class="fa-solid fa-basket-shopping text-emerald-600 mr-1"></i> Composición del Plato</label>
                     <div class="flex gap-2">
                         <select id="receta-picker-alimento" class="flex-1 px-3 py-2 border rounded-xl bg-white text-slate-800 font-semibold"></select>
-                        <input type="number" id="receta-picker-qty" placeholder="Cantidad" class="w-24 px-3 py-2 border rounded-xl bg-white text-slate-800 font-semibold">
+                        <input type="number" id="receta-picker-qty" step="any" placeholder="Cantidad" class="w-24 px-3 py-2 border rounded-xl bg-white text-slate-800 font-semibold">
                         <button onclick="addIngredientToRecipeDraft()" class="bg-emerald-600 text-white px-3 rounded-xl font-bold cursor-pointer"><i class="fa-solid fa-plus"></i></button>
                     </div>
                     <div id="receta-draft-ingredients-list" class="space-y-2"></div>
@@ -390,6 +390,35 @@
                     <button type="submit" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold shadow-md cursor-pointer">Guardar Plato</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL VISTA RECETA -->
+    <div id="modal-view-receta" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col border border-slate-100">
+            <div class="p-6 pb-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 id="view-receta-title" class="text-xl font-extrabold text-slate-900"></h3>
+                <button onclick="closeModalViewReceta()" class="text-slate-400 hover:text-slate-600 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-6">
+                <!-- Macros flotantes -->
+                <div id="view-receta-macros" class="grid grid-cols-4 gap-2 text-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm text-xs font-bold">
+                </div>
+
+                <!-- Ingredientes -->
+                <div>
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-2"><i class="fa-solid fa-basket-shopping text-emerald-600"></i> Ingredientes</h4>
+                    <ul id="view-receta-ingredientes" class="space-y-2 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-medium">
+                    </ul>
+                </div>
+
+                <!-- Preparación -->
+                <div>
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-2"><i class="fa-solid fa-fire-burner text-amber-500"></i> Preparación</h4>
+                    <p id="view-receta-instrucciones" class="text-slate-700 whitespace-pre-line leading-relaxed bg-amber-50/50 border border-amber-100/50 p-4 rounded-2xl text-sm"></p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1329,8 +1358,9 @@
                 card.innerHTML = `
                     <div class="space-y-1">
                         <div class="flex justify-between items-start">
-                            <h4 class="font-extrabold text-slate-900 text-base leading-tight">${r.nombre}</h4>
+                            <h4 class="font-extrabold text-slate-900 text-base leading-tight cursor-pointer hover:text-emerald-600 transition-colors flex-1" onclick="openModalViewReceta('${r.id}')">${r.nombre}</h4>
                             <div class="flex gap-2">
+                                <button onclick="openModalViewReceta('${r.id}')" class="text-slate-400 hover:text-emerald-500 text-xs cursor-pointer"><i class="fa-solid fa-eye"></i></button>
                                 <button onclick="openModalReceta('${r.id}')" class="text-slate-400 hover:text-emerald-500 text-xs cursor-pointer"><i class="fa-solid fa-pencil"></i></button>
                                 <button onclick="deleteRecipe('${r.id}')" class="text-slate-400 hover:text-red-500 text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
                             </div>
@@ -1442,6 +1472,38 @@
                 showToast("Alimento eliminado.");
             }, "bg-red-600", "fa-trash-can", "bg-red-100 text-red-600");
         };
+
+        window.openModalViewReceta = (id) => {
+            const r = appDB.recetas.find(x => x.id === id);
+            if(!r) return;
+            
+            document.getElementById('view-receta-title').innerText = r.nombre;
+            
+            const macros = calculateRecipeMacros(r);
+            document.getElementById('view-receta-macros').innerHTML = `
+                <div><span class="block text-slate-400 uppercase text-[9px] tracking-wide mb-1">Kcal</span><span class="text-slate-800 text-lg">${Math.round(macros.kcal)}</span></div>
+                <div><span class="block text-red-400 uppercase text-[9px] tracking-wide mb-1">Prot</span><span class="text-red-600 text-lg">${Math.round(macros.protein)}g</span></div>
+                <div><span class="block text-amber-400 uppercase text-[9px] tracking-wide mb-1">HC</span><span class="text-amber-600 text-lg">${Math.round(macros.carbs)}g</span></div>
+                <div><span class="block text-blue-400 uppercase text-[9px] tracking-wide mb-1">Grasa</span><span class="text-blue-600 text-lg">${Math.round(macros.fat)}g</span></div>
+            `;
+            
+            const ingsContainer = document.getElementById('view-receta-ingredientes');
+            ingsContainer.innerHTML = '';
+            const ingredientes = Array.isArray(r.ingredientes) ? r.ingredientes : Object.values(r.ingredientes || {});
+            ingredientes.forEach(ing => {
+                const al = appDB.alimentos[ing.alimentoId];
+                if(al) {
+                    ingsContainer.innerHTML += `<li class="flex justify-between border-b border-slate-200/50 last:border-0 pb-1.5 last:pb-0">
+                        <span class="text-slate-800">${al.nombre}</span>
+                        <span class="text-emerald-600 font-bold">${ing.cantidad} ${al.unit}</span>
+                    </li>`;
+                }
+            });
+            
+            document.getElementById('view-receta-instrucciones').innerText = r.instrucciones || 'Sin preparación escrita.';
+            document.getElementById('modal-view-receta').classList.remove('hidden');
+        };
+        window.closeModalViewReceta = () => document.getElementById('modal-view-receta').classList.add('hidden');
 
         window.openModalReceta = (editId = null) => {
             document.getElementById('receta-edit-id').value = editId || '';
