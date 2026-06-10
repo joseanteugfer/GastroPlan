@@ -455,6 +455,29 @@
         </div>
     </div>
 
+    <!-- MODAL QUICK SHOP -->
+    <div id="modal-quick-shop" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm space-y-4">
+            <h3 class="text-lg font-bold text-slate-950 text-center" id="modal-quick-shop-title">Añadir a la compra</h3>
+            <p class="text-sm text-slate-500 text-center -mt-2 mb-4" id="modal-quick-shop-format"></p>
+            <input type="hidden" id="modal-quick-shop-id">
+            
+            <div class="flex items-center justify-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <button onclick="adjustQuickShopQty(-1)" class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-lg hover:bg-slate-100 active:scale-95 transition-all shadow-sm cursor-pointer"><i class="fa-solid fa-minus"></i></button>
+                <div class="text-center w-20">
+                    <span id="modal-quick-shop-qty" class="text-3xl font-extrabold text-slate-900 block">1</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cantidad</span>
+                </div>
+                <button onclick="adjustQuickShopQty(1)" class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-lg hover:bg-slate-100 active:scale-95 transition-all shadow-sm cursor-pointer"><i class="fa-solid fa-plus"></i></button>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeModalQuickShop()" class="w-1/3 py-2.5 bg-slate-100 rounded-xl font-bold text-slate-700 cursor-pointer hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button onclick="confirmQuickShop()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold shadow-md cursor-pointer hover:bg-emerald-700 transition-colors">Añadir a Lista</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Confirm Personalizado (Controladores nativos anti-bloqueo iframes/móvil) -->
     <div id="modal-confirm" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] flex items-center justify-center hidden p-4 transition-opacity">
         <div class="bg-white rounded-[2rem] max-w-sm w-full p-6 md:p-8 shadow-2xl border border-slate-100 text-center transform transition-transform scale-95" id="modal-confirm-content">
@@ -1235,9 +1258,14 @@
                         </div>
                     </div>` : ''}
 
-                    <button onclick="openModalStock('${item.alimentoId}')" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Ajustar stock">
-                        <i class="fa-solid fa-pencil"></i>
-                    </button>
+                    <div class="absolute top-2 right-2 flex gap-1.5">
+                        <button onclick="openModalQuickShop('${item.alimentoId}')" class="w-7 h-7 rounded-full bg-white hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Añadir a la lista de compra">
+                            <i class="fa-solid fa-cart-plus"></i>
+                        </button>
+                        <button onclick="openModalStock('${item.alimentoId}')" class="w-7 h-7 rounded-full bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Ajustar stock">
+                            <i class="fa-solid fa-pencil"></i>
+                        </button>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
