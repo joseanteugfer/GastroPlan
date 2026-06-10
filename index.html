@@ -401,15 +401,15 @@
         </div>
     </div>
 
-    <!-- Modal Confirm Personalizado (Controladores 100% nativos e indoloros para iframes) -->
+    <!-- Modal Confirm Personalizado (Controladores nativos anti-bloqueo iframes/móvil) -->
     <div id="modal-confirm" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80] flex items-center justify-center hidden p-4 transition-opacity">
         <div class="bg-white rounded-[2rem] max-w-sm w-full p-6 md:p-8 shadow-2xl border border-slate-100 text-center transform transition-transform scale-95" id="modal-confirm-content">
             <div id="confirm-icon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4"></div>
             <h3 id="confirm-title" class="text-2xl font-black text-slate-900 mb-2"></h3>
             <p id="confirm-msg" class="text-base text-slate-500 mb-8 whitespace-pre-wrap leading-relaxed"></p>
             <div class="flex flex-col md:flex-row gap-3">
-                <button id="btn-confirm-cancel" class="w-full py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition-all active:scale-95 order-2 md:order-1">Cancelar</button>
-                <button id="btn-confirm-ok" class="w-full py-4 md:py-3 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95 order-1 md:order-2"></button>
+                <button id="btn-confirm-cancel" class="w-full py-4 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-base transition-all active:scale-95 order-2 md:order-1 cursor-pointer">Cancelar</button>
+                <button id="btn-confirm-ok" class="w-full py-4 md:py-3 text-white rounded-2xl font-bold text-base shadow-lg transition-all active:scale-95 order-1 md:order-2 cursor-pointer"></button>
             </div>
         </div>
     </div>
@@ -469,13 +469,9 @@
                 "toma_1": { alimentoId: "toma_1", qtyEnteros: 0, pctAbierto: 0, categoria: "Despensa y Pastas" },
                 "huev_1": { alimentoId: "huev_1", qtyEnteros: 1, pctAbierto: 100, categoria: "Lácteos y Huevos" }
             },
-            recetas: [
-                { id: "rec_1", nombre: "Macarrones boloñesa", instrucciones: "Cocer la pasta y echar el tomate.", ingredientes: [{ alimentoId: "maca_1", cantidad: 100 }, { alimentoId: "toma_1", cantidad: 150 }] }
-            ],
+            recetas: [],
             planCalendario: {}, // Estructura: {"YYYY-MM-DD": { almuerzo: id, almuerzoCooked: false, cena: id, cenaCooked: false }}
-            listaCompra: [
-                { id: "shop_init_1", nombre: "Detergente Lavadora", alimentoId: null, categoria: "Droguería y Limpieza", necesarios: 1, comprados: 0 }
-            ],
+            listaCompra: [],
             historialNombresCompra: ["Papel Higiénico", "Detergente Lavadora", "Leche de Avena", "Bolsas de Basura"]
         };
 
@@ -495,7 +491,7 @@
         window.logoutUsuario = () => {
             customConfirm("Cerrar Sesión", "¿Estás seguro de que quieres salir de tu cuenta compartida?", () => {
                 signOut(auth);
-            }, "bg-brand-600", "fa-arrow-right-from-bracket");
+            }, "bg-emerald-600", "fa-arrow-right-from-bracket");
         };
 
         if (auth) {
@@ -525,25 +521,42 @@
                 if (docSnap.exists()) {
                     appDB = docSnap.data();
                     
-                    // Sanitización Profunda Estructural...
+                    // --- SANITIZACIÓN E HIDRATACIÓN (MIGRACIÓN LEGACY AUTOMÁTICA) ---
+                    // Evitar crasheos de viejas versiones que no tenían ID
                     if (!appDB.categorias) appDB.categorias = [...SEED_DATA.categorias];
                     else if (!Array.isArray(appDB.categorias)) appDB.categorias = Object.values(appDB.categorias);
 
                     if (!appDB.alimentos) appDB.alimentos = {...SEED_DATA.alimentos};
                     if (!appDB.despensa) appDB.despensa = {...SEED_DATA.despensa};
                     
-                    if (!appDB.recetas) appDB.recetas = [...SEED_DATA.recetas];
+                    // Limpieza despensa legacy que rompía la vista visual al no tener alimentoId
+                    Object.keys(appDB.despensa).forEach(key => {
+                        if (appDB.despensa[key] && !appDB.despensa[key].alimentoId) {
+                            delete appDB.despensa[key];
+                        }
+                    });
+                    
+                    if (!appDB.recetas) appDB.recetas = [];
                     else if (!Array.isArray(appDB.recetas)) appDB.recetas = Object.values(appDB.recetas);
                     
-                    appDB.recetas.forEach(r => {
-                        if (!r.ingredientes) r.ingredientes = [];
-                        else if (!Array.isArray(r.ingredientes)) r.ingredientes = Object.values(r.ingredientes);
+                    // MIGRACIÓN CRÍTICA RECETAS: Si en pruebas pasadas guardaste platos sin ID,
+                    // esta línea los detecta y les inyecta un ID para que los puedas borrar con normalidad.
+                    appDB.recetas.forEach((r, idx) => {
+                        if (!r.id) {
+                            r.id = 'rec_legacy_' + Date.now() + Math.random().toString(36).substr(2, 5);
+                        }
+                        if (r.ingredientes && !Array.isArray(r.ingredientes)) {
+                            r.ingredientes = Object.values(r.ingredientes).filter(i => typeof i === 'object' && i.alimentoId);
+                        }
                     });
 
                     if (!appDB.planCalendario) appDB.planCalendario = {};
                     
                     if (!appDB.listaCompra) appDB.listaCompra = [];
                     else if (!Array.isArray(appDB.listaCompra)) appDB.listaCompra = Object.values(appDB.listaCompra);
+                    
+                    // Limpiar ítems corruptos antiguos de la lista de compra
+                    appDB.listaCompra = appDB.listaCompra.filter(i => i && typeof i === 'object' && i.id && i.necesarios !== undefined);
                     
                     if (!appDB.historialNombresCompra) appDB.historialNombresCompra = [...SEED_DATA.historialNombresCompra];
                     else if (!Array.isArray(appDB.historialNombresCompra)) appDB.historialNombresCompra = Object.values(appDB.historialNombresCompra);
@@ -560,12 +573,13 @@
 
         function saveState() {
             if (!appDB) return;
-            // Refrescar interfaz localmente de inmediato para mejorar la respuesta (Cero Lag)
+            // Cero Lag Local
             actualizarUI();
             
             if (db) {
-                // CLONACIÓN PROFUNDA CRÍTICA: Rompe cualquier caché de referencia interna de Firebase,
-                // asegurando que las eliminaciones (arrays más pequeños o claves borradas) se propaguen forzosamente.
+                // CLONACIÓN PROFUNDA CRÍTICA
+                // Esto rompe cualquier referencia en caché, forzando a Firebase a subir cualquier cosa 
+                // que haya sido filtrada o borrada (arrays más pequeños).
                 const cleanData = JSON.parse(JSON.stringify(appDB));
                 setDoc(getSharedDocRef(), cleanData).catch(e => {
                     console.error("Firestore Error: ", e);
@@ -714,7 +728,7 @@
             }
 
             if (matchedAlimentoId) {
-                showToast(`"${name}" ya está registrado como un Alimento Base en tu despensa. Añádelo desde allí.`, "error");
+                showToast(`"${name}" está en tus Alimentos Base. Añádelo desde la despensa o receta.`, "error");
                 input.value = '';
                 document.getElementById('shop-autocomplete-box').classList.add('hidden');
                 return;
@@ -880,7 +894,7 @@
 
             return `
                 <div class="border border-slate-200 rounded-2xl p-3 flex items-center justify-between gap-2 bg-slate-50/80">
-                    <div class="flex items-center gap-2.5 min-w-0 font-medium" onclick="openModalPickRecipe('${dateStr}', '${type}')">
+                    <div class="flex items-center gap-2.5 min-w-0 font-medium cursor-pointer" onclick="openModalPickRecipe('${dateStr}', '${type}')">
                         <i class="fa-solid ${iconType} text-base shrink-0"></i>
                         <div class="truncate">
                             <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide leading-none">${titleType}</span>
@@ -1116,6 +1130,7 @@
                 const card = document.createElement('div');
                 card.className = 'bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col justify-between gap-4 relative overflow-hidden';
                 
+                // REDISEÑO: Cantidad de unidades enteras mucho más grande y llamativa
                 card.innerHTML = `
                     <div class="flex justify-between items-start gap-3">
                         <div class="min-w-0 flex-1">
@@ -1452,8 +1467,14 @@
 
         window.deleteRecipe = (id) => {
             customConfirm("Eliminar Receta", "¿Estás seguro de que deseas eliminar este plato de forma permanente? Se quitará de los planes donde esté agendado.", () => {
-                appDB.recetas = appDB.recetas.filter(r => r.id !== id);
                 
+                // Borrado preciso del array usando findIndex y splice para alterar memoria directa
+                const rIndex = appDB.recetas.findIndex(r => r.id === id);
+                if (rIndex > -1) {
+                    appDB.recetas.splice(rIndex, 1);
+                }
+                
+                // Limpieza en el planificador
                 for (const fechaKey in appDB.planCalendario) {
                     if (appDB.planCalendario[fechaKey].almuerzo === id) {
                         appDB.planCalendario[fechaKey].almuerzo = "";
