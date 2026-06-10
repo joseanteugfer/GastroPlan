@@ -1258,12 +1258,12 @@
                         </div>
                     </div>` : ''}
 
-                    <div class="absolute top-2 right-2 flex gap-1.5">
-                        <button onclick="openModalQuickShop('${item.alimentoId}')" class="w-7 h-7 rounded-full bg-white hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Añadir a la lista de compra">
-                            <i class="fa-solid fa-cart-plus"></i>
+                    <div class="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-slate-100">
+                        <button onclick="openModalQuickShop('${item.alimentoId}')" class="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer" title="Añadir a la lista de compra">
+                            <i class="fa-solid fa-cart-plus"></i> Comprar
                         </button>
-                        <button onclick="openModalStock('${item.alimentoId}')" class="w-7 h-7 rounded-full bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Ajustar stock">
-                            <i class="fa-solid fa-pencil"></i>
+                        <button onclick="openModalStock('${item.alimentoId}')" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer" title="Ajustar stock">
+                            <i class="fa-solid fa-pencil"></i> Ajustar
                         </button>
                     </div>
                 `;
@@ -1356,6 +1356,58 @@
             saveState();
             closeModalStock();
             showToast(`Pedido +1 de "${alimento.nombre}" al Súper.`);
+        };
+
+        window.openModalQuickShop = (alimentoId) => {
+            const alimento = appDB.alimentos[alimentoId];
+            if(!alimento) return;
+            document.getElementById('modal-quick-shop-id').value = alimentoId;
+            document.getElementById('modal-quick-shop-title').innerText = `Comprar: ${alimento.nombre}`;
+            
+            let formatText = `Cada unidad añade 1 formato de compra (${alimento.formatoCompra}${alimento.unit})`;
+            if (alimento.unit === 'envase') {
+                formatText = `Cada cantidad añade 1 pack de ${alimento.formatoCompra} envases`;
+            } else if (alimento.unit === 'uds') {
+                formatText = `Cada cantidad añade 1 pack de ${alimento.formatoCompra} unidades`;
+            }
+            document.getElementById('modal-quick-shop-format').innerText = formatText;
+            document.getElementById('modal-quick-shop-qty').innerText = "1";
+            document.getElementById('modal-quick-shop').classList.remove('hidden');
+        };
+
+        window.closeModalQuickShop = () => {
+            document.getElementById('modal-quick-shop').classList.add('hidden');
+        };
+
+        window.adjustQuickShopQty = (change) => {
+            const el = document.getElementById('modal-quick-shop-qty');
+            let val = parseInt(el.innerText) || 1;
+            val = Math.max(1, val + change);
+            el.innerText = val;
+        };
+
+        window.confirmQuickShop = () => {
+            const itemId = document.getElementById('modal-quick-shop-id').value;
+            const qty = parseInt(document.getElementById('modal-quick-shop-qty').innerText) || 1;
+            const alimento = appDB.alimentos[itemId];
+            if (!alimento) return;
+
+            const existing = appDB.listaCompra.find(i => i.alimentoId === itemId);
+            if(existing) {
+                existing.necesarios += qty;
+            } else {
+                appDB.listaCompra.push({
+                    id: 'shop_' + Date.now(),
+                    nombre: alimento.nombre,
+                    alimentoId: itemId,
+                    categoria: alimento.categoria,
+                    necesarios: qty,
+                    comprados: 0
+                });
+            }
+            saveState();
+            closeModalQuickShop();
+            showToast(`Añadido a la lista (${qty} x formato)`);
         };
 
         window.saveModalStock = () => {
