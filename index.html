@@ -376,7 +376,7 @@
                     <div class="flex gap-2">
                         <select id="receta-picker-alimento" class="flex-1 px-3 py-2 border rounded-xl bg-white text-slate-800 font-semibold"></select>
                         <input type="number" id="receta-picker-qty" step="any" placeholder="Cantidad" class="w-24 px-3 py-2 border rounded-xl bg-white text-slate-800 font-semibold">
-                        <button onclick="addIngredientToRecipeDraft()" class="bg-emerald-600 text-white px-3 rounded-xl font-bold cursor-pointer"><i class="fa-solid fa-plus"></i></button>
+                        <button type="button" onclick="addIngredientToRecipeDraft()" class="bg-emerald-600 text-white px-3 rounded-xl font-bold cursor-pointer"><i class="fa-solid fa-plus"></i></button>
                     </div>
                     <div id="receta-draft-ingredients-list" class="space-y-2"></div>
                 </div>
@@ -1563,7 +1563,7 @@
                 row.className = 'flex justify-between bg-white px-3 py-2 rounded-xl text-xs font-bold border border-slate-200';
                 row.innerHTML = `
                     <span class="text-slate-800">${al.nombre}: ${ing.cantidad} ${al.unit}</span>
-                    <button onclick="removeIngredientFromDraft(${index})" class="text-red-500 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+                    <button type="button" onclick="removeIngredientFromDraft(${index})" class="text-red-500 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                 `;
                 box.appendChild(row);
             });
