@@ -189,7 +189,7 @@
             <!-- VISTA: CONFIGURACIÓN -->
             <section id="view-config" class="tab-view hidden space-y-6">
                 <div>
-                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Configuración del System</h2>
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Configuración del Sistema</h2>
                     <p class="text-sm text-slate-500">Administra de manera segura las categorías compartidas por la unidad familiar.</p>
                 </div>
 
@@ -407,7 +407,7 @@
     <!-- CÓDIGO LOGICA DE CONEXIÓN FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURA AQUÍ TUS CREDENCIALES REALES DE FIREBASE
@@ -509,14 +509,30 @@
             unsubscribeSnapshot = onSnapshot(getSharedDocRef(), (docSnap) => {
                 if (docSnap.exists()) {
                     appDB = docSnap.data();
-                    // Sanitización de estructuras
+                    
+                    // Sanitización Profunda Estructural: Evita que Firebase convierta arrays vacíos o modificados en Objetos y crashee el sistema.
                     if (!appDB.categorias) appDB.categorias = [...SEED_DATA.categorias];
+                    else if (!Array.isArray(appDB.categorias)) appDB.categorias = Object.values(appDB.categorias);
+
                     if (!appDB.alimentos) appDB.alimentos = {...SEED_DATA.alimentos};
                     if (!appDB.despensa) appDB.despensa = {...SEED_DATA.despensa};
+                    
                     if (!appDB.recetas) appDB.recetas = [...SEED_DATA.recetas];
+                    else if (!Array.isArray(appDB.recetas)) appDB.recetas = Object.values(appDB.recetas);
+                    
+                    // Sanitizar que los ingredientes de cada receta sigan siendo arrays obligatoriamente
+                    appDB.recetas.forEach(r => {
+                        if (!r.ingredientes) r.ingredientes = [];
+                        else if (!Array.isArray(r.ingredientes)) r.ingredientes = Object.values(r.ingredientes);
+                    });
+
                     if (!appDB.planCalendario) appDB.planCalendario = {};
+                    
                     if (!appDB.listaCompra) appDB.listaCompra = [];
+                    else if (!Array.isArray(appDB.listaCompra)) appDB.listaCompra = Object.values(appDB.listaCompra);
+                    
                     if (!appDB.historialNombresCompra) appDB.historialNombresCompra = [...SEED_DATA.historialNombresCompra];
+                    else if (!Array.isArray(appDB.historialNombresCompra)) appDB.historialNombresCompra = Object.values(appDB.historialNombresCompra);
                     
                     actualizarUI();
                 } else {
@@ -636,7 +652,6 @@
             const query = val.toLowerCase().trim();
             const pool = new Set([...appDB.historialNombresCompra]);
 
-            // EXCLUSIÓN: Los ingredientes base NO se sugieren en la lista de autocompletado rápido
             const ingredientesNombres = Object.values(appDB.alimentos).map(a => a.nombre.toLowerCase());
 
             const filtrados = Array.from(pool)
@@ -672,7 +687,6 @@
 
             const nameLower = name.toLowerCase();
 
-            // RESTRICCIÓN DE INGREDIENTES: Comprobar si el nombre escrito coincide con un Alimento Base federado
             let matchedAlimentoId = null;
             for (const id in appDB.alimentos) {
                 if (appDB.alimentos[id].nombre.toLowerCase() === nameLower) {
@@ -688,7 +702,6 @@
                 return;
             }
 
-            // CONTROL DE DUPLICADOS CASE-INSENSITIVE: Validar si ya existe el producto con cualquier variación de mayúsculas/minúsculas
             const existing = appDB.listaCompra.find(i => i.nombre.toLowerCase() === nameLower);
             if (existing) {
                 existing.necesarios += 1;
@@ -696,7 +709,7 @@
             } else {
                 appDB.listaCompra.push({
                     id: 'shop_' + Date.now() + Math.random().toString(36).substr(2, 4),
-                    nombre: name, // Conserva la primera escritura del usuario
+                    nombre: name,
                     alimentoId: null,
                     categoria: "Otros",
                     necesarios: 1,
@@ -705,7 +718,6 @@
                 showToast(`Añadido: ${name}`);
             }
 
-            // Alimentar historial único si no existe (Case-Insensitive)
             const existsInHistory = appDB.historialNombresCompra.some(h => h.toLowerCase() === nameLower);
             if (!existsInHistory) {
                 appDB.historialNombresCompra.push(name);
@@ -753,7 +765,6 @@
                         appDB.despensa[item.alimentoId].qtyEnteros += item.comprados;
                         countVolcados++;
                     } else {
-                        // Es un artículo genérico (limpieza/varios). Crear alimento persistente
                         const ghostId = 'ghost_' + item.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_");
                         if (!appDB.alimentos[ghostId]) {
                             appDB.alimentos[ghostId] = { id: ghostId, nombre: item.nombre, unit: "uds", formatoCompra: 1, kcal: 0, protein: 0, carbs: 0, fat: 0, categoria: item.categoria };
@@ -892,7 +903,7 @@
                     const recId = dataDia[meal];
                     if (recId && appDB.recetas) {
                         const receta = appDB.recetas.find(r => r.id === recId);
-                        if (recipe) {
+                        if (receta) {
                             const macros = calculateRecipeMacros(receta);
                             totalKcal += macros.kcal; totalProt += macros.protein; totalCarbs += macros.carbs; totalFat += macros.fat;
                         }
@@ -964,7 +975,10 @@
             const receta = appDB.recetas.find(r => r.id === recId);
             if (!receta) return;
 
-            receta.ingredientes.forEach(ing => {
+            // Blindaje por si ingredientes viene modificado desde la nube
+            const ingredientes = Array.isArray(receta.ingredientes) ? receta.ingredientes : Object.values(receta.ingredientes || {});
+
+            ingredientes.forEach(ing => {
                 const stockItem = appDB.despensa[ing.alimentoId];
                 const alimentoInfo = appDB.alimentos[ing.alimentoId];
                 if (stockItem && alimentoInfo) {
@@ -995,7 +1009,9 @@
             if (!receta) return;
 
             let addedCount = 0;
-            receta.ingredientes.forEach(ing => {
+            const ingredientes = Array.isArray(receta.ingredientes) ? receta.ingredientes : Object.values(receta.ingredientes || {});
+            
+            ingredientes.forEach(ing => {
                 const alimento = appDB.alimentos[ing.alimentoId];
                 if (alimento) {
                     const inShop = appDB.listaCompra.find(i => i.alimentoId === ing.alimentoId);
@@ -1083,7 +1099,6 @@
                 const card = document.createElement('div');
                 card.className = 'bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col justify-between gap-4 relative overflow-hidden';
                 
-                // REDISEÑO: Cantidad de unidades enteras mucho más grande y llamativa
                 card.innerHTML = `
                     <div class="flex justify-between items-start gap-3">
                         <div class="min-w-0 flex-1">
@@ -1091,7 +1106,6 @@
                             <h4 class="font-extrabold text-lg text-slate-900 leading-tight truncate">${alimento.nombre}</h4>
                             <span class="text-xs text-slate-400 block mt-1">Formato: ${alimento.formatoCompra}${alimento.unit}</span>
                         </div>
-                        <!-- Gran indicador visual de unidades cerradas de un vistazo -->
                         <div class="flex flex-col items-center justify-center bg-slate-100 rounded-2xl p-3 min-w-[75px] h-[75px] border border-slate-200/60 shadow-inner shrink-0">
                             <span class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">${item.qtyEnteros}</span>
                             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">${item.qtyEnteros === 1 ? 'Envase' : 'Envases'}</span>
@@ -1103,13 +1117,11 @@
                             <span class="flex items-center gap-1.5"><i class="fa-solid fa-box-open text-emerald-600"></i> Envase abierto:</span>
                             <span class="font-extrabold ${item.pctAbierto > 0 ? 'text-emerald-600' : 'text-slate-400'}">${item.pctAbierto}%</span>
                         </div>
-                        <!-- Barra de progreso visual "Tanque Gasolina" -->
                         <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden border border-slate-300/20">
                             <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: ${item.pctAbierto}%"></div>
                         </div>
                     </div>
 
-                    <!-- Botón de edición flotante sutil y limpio -->
                     <button onclick="openModalStock('${item.alimentoId}')" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Ajustar stock">
                         <i class="fa-solid fa-pencil"></i>
                     </button>
@@ -1255,7 +1267,10 @@
                 const card = document.createElement('div');
                 card.className = 'bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between gap-4';
                 
-                let textIngs = r.ingredientes.map(i => {
+                // Extraer de forma segura garantizando Array
+                const ingredientes = Array.isArray(r.ingredientes) ? r.ingredientes : Object.values(r.ingredientes || {});
+                
+                let textIngs = ingredientes.map(i => {
                     const al = appDB.alimentos[i.alimentoId];
                     return al ? `${al.nombre} (${i.cantidad}${al.unit})` : 'Ingrediente huérfano';
                 }).join(', ');
@@ -1283,7 +1298,10 @@
 
         function calculateRecipeMacros(receta) {
             let kcal = 0, protein = 0, carbs = 0, fat = 0;
-            receta.ingredientes.forEach(ing => {
+            // Asegurar que iteramos siempre sobre un array válido (blindaje anti-Firebase conversion)
+            const ingredientes = Array.isArray(receta.ingredientes) ? receta.ingredientes : Object.values(receta.ingredientes || {});
+            
+            ingredientes.forEach(ing => {
                 const al = appDB.alimentos[ing.alimentoId];
                 if (al) {
                     const ratio = ing.cantidad / 100;
@@ -1405,7 +1423,7 @@
                 id: 'rec_' + Date.now(),
                 nombre,
                 instrucciones: inst,
-                ingredientes: [...recipeDraftIngredients]
+                ingredientes: [...recipeDraftIngredients] // Mantiene formato array real
             });
 
             saveState();
@@ -1419,7 +1437,6 @@
             if(confirm("¿Eliminar este plato del catálogo de casa? Se borrará también de tu planificador.")) {
                 appDB.recetas = appDB.recetas.filter(r => r.id !== id);
                 
-                // MEJORA: Buscar y eliminar de forma inmediata cualquier rastro de este plato en el calendario familiar
                 for (const fechaKey in appDB.planCalendario) {
                     if (appDB.planCalendario[fechaKey].almuerzo === id) {
                         appDB.planCalendario[fechaKey].almuerzo = "";
