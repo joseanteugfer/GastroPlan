@@ -1190,20 +1190,41 @@
                 const card = document.createElement('div');
                 card.className = 'bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col justify-between gap-4 relative overflow-hidden';
                 
+                let totalUnidadesDisplay = item.qtyEnteros;
+                let unidadDisplay = item.qtyEnteros === 1 ? 'Paquete' : 'Paquetes';
+                let formatoDisplay = `Formato: ${alimento.formatoCompra}${alimento.unit}`;
+                let showProgressBar = true;
+
+                if (alimento.unit === 'envase' || alimento.unit === 'uds') {
+                    const envasesEnEnteros = item.qtyEnteros * (alimento.formatoCompra || 1);
+                    const envasesEnAbierto = Math.round((item.pctAbierto / 100) * (alimento.formatoCompra || 1));
+                    totalUnidadesDisplay = envasesEnEnteros + envasesEnAbierto;
+                    
+                    if (alimento.unit === 'envase') {
+                        unidadDisplay = totalUnidadesDisplay === 1 ? 'Envase' : 'Envases';
+                        formatoDisplay = `Formato: ${alimento.formatoCompra} envases de ${alimento.pesoEnvase || 0}${alimento.unidadEnvase || 'g'}`;
+                    } else {
+                        unidadDisplay = totalUnidadesDisplay === 1 ? 'Unidad' : 'Unidades';
+                        formatoDisplay = `Formato: Pack de ${alimento.formatoCompra}`;
+                    }
+                    showProgressBar = false;
+                }
+
                 // REDISEÑO: Cantidad de unidades enteras mucho más grande y llamativa
                 card.innerHTML = `
                     <div class="flex justify-between items-start gap-3">
                         <div class="min-w-0 flex-1">
                             <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide leading-none mb-1.5">${item.categoria}</span>
                             <h4 class="font-extrabold text-lg text-slate-900 leading-tight truncate">${alimento.nombre}</h4>
-                            <span class="text-xs text-slate-400 block mt-1">Formato: ${alimento.formatoCompra}${alimento.unit}</span>
+                            <span class="text-xs text-slate-400 block mt-1">${formatoDisplay}</span>
                         </div>
                         <div class="flex flex-col items-center justify-center bg-slate-100 rounded-2xl p-3 min-w-[75px] h-[75px] border border-slate-200/60 shadow-inner shrink-0">
-                            <span class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">${item.qtyEnteros}</span>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">${item.qtyEnteros === 1 ? 'Envase' : 'Envases'}</span>
+                            <span class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">${totalUnidadesDisplay}</span>
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">${unidadDisplay}</span>
                         </div>
                     </div>
 
+                    ${showProgressBar ? `
                     <div class="space-y-2 mt-1 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
                         <div class="flex justify-between text-xs font-semibold text-slate-600">
                             <span class="flex items-center gap-1.5"><i class="fa-solid fa-box-open text-emerald-600"></i> Envase abierto:</span>
@@ -1212,7 +1233,7 @@
                         <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden border border-slate-300/20">
                             <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: ${item.pctAbierto}%"></div>
                         </div>
-                    </div>
+                    </div>` : ''}
 
                     <button onclick="openModalStock('${item.alimentoId}')" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Ajustar stock">
                         <i class="fa-solid fa-pencil"></i>
