@@ -94,7 +94,7 @@
                         <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Lista de la Compra</h2>
                         <p class="text-sm text-slate-500">Agrupada automáticamente por pasillos del supermercado.</p>
                     </div>
-                    <button onclick="clearCompletedShopping()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all cursor-pointer">
+                    <button onclick="clearCompletedShopping()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all cursor-pointer border border-emerald-200">
                         <i class="fa-solid fa-basket-shopping"></i> Confirmar Compra
                     </button>
                 </div>
@@ -171,16 +171,17 @@
                     </div>
                 </div>
 
+                <!-- Reorganización Mobile: Platos primero (order-1), Alimentos base segundo (order-2) -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Columna de Alimentos Base -->
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                        <h3 class="font-bold text-slate-900 border-b border-slate-100 pb-2"><i class="fa-solid fa-apple-whole text-emerald-600 mr-2"></i>Alimentos Base (100g/ml)</h3>
-                        <div id="list-raw-alimentos" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
-                    </div>
-                    <!-- Columna de Recetas Guardadas -->
-                    <div class="md:col-span-2 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                        <h3 class="font-bold text-slate-900 border-b border-slate-100 pb-2"><i class="fa-solid fa-mortar-pestle text-emerald-600 mr-2"></i>Catálogo de Platos</h3>
+                    <!-- Columna de Recetas Guardadas (Se muestra arriba en móviles con order-1) -->
+                    <div class="order-1 md:order-2 md:col-span-2 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-mortar-pestle text-emerald-600"></i>Catálogo de Platos</h3>
                         <div id="list-catalog-recetas" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+                    </div>
+                    <!-- Columna de Alimentos Base (Se muestra abajo en móviles con order-2) -->
+                    <div class="order-2 md:order-1 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fa-solid fa-apple-whole text-emerald-600"></i>Alimentos Base (100g/ml)</h3>
+                        <div id="list-raw-alimentos" class="space-y-2 max-h-[500px] overflow-y-auto pr-1"></div>
                     </div>
                 </div>
             </section>
@@ -410,7 +411,7 @@
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURA AQUÍ TUS CREDENCIALES REALES DE FIREBASE
-        const firebaseConfig = {
+		const firebaseConfig = {
   			apiKey: "AIzaSyCoWNsMvHHdaINMtoOI-GdV9fs79of7Fqk",
   			authDomain: "gastroplan-6bbad.firebaseapp.com",
   			projectId: "gastroplan-6bbad",
@@ -529,9 +530,14 @@
 
         function saveState() {
             if (!appDB) return;
-            setDoc(getSharedDocRef(), appDB).catch(e => {
-                showToast("Error de escritura en la nube", "error");
-            });
+            // Refrescar interfaz localmente de inmediato para mejorar la respuesta (Cero Lag)
+            actualizarUI();
+            
+            if (db) {
+                setDoc(getSharedDocRef(), appDB).catch(e => {
+                    showToast("Error de escritura en la nube", "error");
+                });
+            }
         }
 
         // --- CONTROLADOR DE VISTAS ---
@@ -886,7 +892,7 @@
                     const recId = dataDia[meal];
                     if (recId && appDB.recetas) {
                         const receta = appDB.recetas.find(r => r.id === recId);
-                        if (receta) {
+                        if (recipe) {
                             const macros = calculateRecipeMacros(receta);
                             totalKcal += macros.kcal; totalProt += macros.protein; totalCarbs += macros.carbs; totalFat += macros.fat;
                         }
@@ -1075,26 +1081,38 @@
                 if (!alimento) return;
 
                 const card = document.createElement('div');
-                card.className = 'bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col justify-between gap-3 relative';
+                card.className = 'bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col justify-between gap-4 relative overflow-hidden';
                 
+                // REDISEÑO: Cantidad de unidades enteras mucho más grande y llamativa
                 card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">${item.categoria}</span>
-                            <h4 class="font-bold text-base text-slate-900 leading-tight">${alimento.nombre}</h4>
+                    <div class="flex justify-between items-start gap-3">
+                        <div class="min-w-0 flex-1">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide leading-none mb-1.5">${item.categoria}</span>
+                            <h4 class="font-extrabold text-lg text-slate-900 leading-tight truncate">${alimento.nombre}</h4>
+                            <span class="text-xs text-slate-400 block mt-1">Formato: ${alimento.formatoCompra}${alimento.unit}</span>
                         </div>
-                        <button onclick="openModalStock('${item.alimentoId}')" class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm border border-slate-200 cursor-pointer"><i class="fa-solid fa-pen"></i></button>
+                        <!-- Gran indicador visual de unidades cerradas de un vistazo -->
+                        <div class="flex flex-col items-center justify-center bg-slate-100 rounded-2xl p-3 min-w-[75px] h-[75px] border border-slate-200/60 shadow-inner shrink-0">
+                            <span class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">${item.qtyEnteros}</span>
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mt-1.5">${item.qtyEnteros === 1 ? 'Envase' : 'Envases'}</span>
+                        </div>
                     </div>
 
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between text-xs font-bold text-slate-600">
-                            <span>Cerrados: <b class="text-slate-900 text-sm">${item.qtyEnteros}</b> botes</span>
-                            <span>Abierto: <b class="text-emerald-600">${item.pctAbierto}%</b></span>
+                    <div class="space-y-2 mt-1 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                        <div class="flex justify-between text-xs font-semibold text-slate-600">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-box-open text-emerald-600"></i> Envase abierto:</span>
+                            <span class="font-extrabold ${item.pctAbierto > 0 ? 'text-emerald-600' : 'text-slate-400'}">${item.pctAbierto}%</span>
                         </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200/50">
+                        <!-- Barra de progreso visual "Tanque Gasolina" -->
+                        <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden border border-slate-300/20">
                             <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: ${item.pctAbierto}%"></div>
                         </div>
                     </div>
+
+                    <!-- Botón de edición flotante sutil y limpio -->
+                    <button onclick="openModalStock('${item.alimentoId}')" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-700 text-xs border border-slate-200 shadow-sm flex items-center justify-center cursor-pointer transition-all active:scale-90" title="Ajustar stock">
+                        <i class="fa-solid fa-pencil"></i>
+                    </button>
                 `;
                 grid.appendChild(card);
             });
@@ -1219,7 +1237,7 @@
                         <span class="font-bold text-slate-800 block">${a.nombre}</span>
                         <span class="text-[10px] text-slate-400">${a.formatoCompra}${a.unit} venta · ${a.kcal} kcal</span>
                     </div>
-                    <button onclick="deleteAlimentoBase('${a.id}')" class="text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="deleteAlimentoBase('${a.id}')" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
                 `;
                 rawContainer.appendChild(div);
             });
@@ -1228,7 +1246,7 @@
             catalogContainer.innerHTML = '';
 
             if(appDB.recetas.length === 0){
-                catalogContainer.innerHTML = '<p class="text-center text-xs text-slate-400 py-6 col-span-full">No tenéis platos familiares registrados.</p>';
+                catalogContainer.innerHTML = '<p class="text-center text-xs text-slate-400 py-6 col-span-full font-semibold">No tenéis platos familiares registrados.</p>';
                 return;
             }
 
@@ -1246,7 +1264,7 @@
                     <div class="space-y-1">
                         <div class="flex justify-between items-start">
                             <h4 class="font-extrabold text-slate-900 text-base leading-tight">${r.nombre}</h4>
-                            <button onclick="deleteRecipe('${r.id}')" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="deleteRecipe('${r.id}')" class="text-slate-400 hover:text-red-500 text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
                         </div>
                         <p class="text-xs font-semibold text-emerald-600 line-clamp-1">Ingr: ${textIngs || 'Ninguno'}</p>
                         <p class="text-xs text-slate-500 line-clamp-2 italic">${r.instrucciones || 'Sin preparación escrita.'}</p>
@@ -1364,7 +1382,7 @@
                 row.className = 'flex justify-between bg-white px-3 py-2 rounded-xl text-xs font-bold border border-slate-200';
                 row.innerHTML = `
                     <span class="text-slate-800">${al.nombre}: ${ing.cantidad} ${al.unit}</span>
-                    <button onclick="removeIngredientFromDraft(${index})" class="text-red-500"><i class="fa-solid fa-xmark"></i></button>
+                    <button onclick="removeIngredientFromDraft(${index})" class="text-red-500 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                 `;
                 box.appendChild(row);
             });
@@ -1398,9 +1416,23 @@
         };
 
         window.deleteRecipe = (id) => {
-            if(confirm("¿Eliminar este plato del catálogo de casa?")) {
+            if(confirm("¿Eliminar este plato del catálogo de casa? Se borrará también de tu planificador.")) {
                 appDB.recetas = appDB.recetas.filter(r => r.id !== id);
+                
+                // MEJORA: Buscar y eliminar de forma inmediata cualquier rastro de este plato en el calendario familiar
+                for (const fechaKey in appDB.planCalendario) {
+                    if (appDB.planCalendario[fechaKey].almuerzo === id) {
+                        appDB.planCalendario[fechaKey].almuerzo = "";
+                        appDB.planCalendario[fechaKey].almuerzoCooked = false;
+                    }
+                    if (appDB.planCalendario[fechaKey].cena === id) {
+                        appDB.planCalendario[fechaKey].cena = "";
+                        appDB.planCalendario[fechaKey].cenaCooked = false;
+                    }
+                }
+                
                 saveState();
+                showToast("Receta eliminada del catálogo y de la planificación.");
             }
         };
 
@@ -1416,8 +1448,8 @@
                 div.innerHTML = `
                     <span class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-align-left text-slate-400 mr-2"></i>${cat}</span>
                     <div class="flex gap-2">
-                        <button onclick="renameCategoryPrompt('${cat}')" class="text-slate-700 text-xs px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold">Renombrar</button>
-                        <button onclick="deleteCategorySafetyCheck('${cat}')" class="text-red-500 text-sm p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="renameCategoryPrompt('${cat}')" class="text-slate-700 text-xs px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg font-bold cursor-pointer">Renombrar</button>
+                        <button onclick="deleteCategorySafetyCheck('${cat}')" class="text-red-500 text-sm p-1 cursor-pointer"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
                 `;
                 box.appendChild(div);
