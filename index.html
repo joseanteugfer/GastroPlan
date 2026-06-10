@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GastroPlan - Menú y Despensa Compartida</title>
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#059669">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23059669' d='M256 0c141.4 0 256 114.6 256 256S397.4 512 256 512 0 397.4 0 256 114.6 0 256 0zM170.8 132.8c-10.4-3.5-21.7 2-25.2 12.4s2 21.7 12.4 25.2c19.1 6.4 33 24.3 33 45.6v56H159v56h32v80c0 13.3 10.7 24 24 24s24-10.7 24-24V328h32v-56H239V216c0-43.9-35.6-79.5-79.5-79.5l11.3-3.7zM368 128h-32c-17.7 0-32 14.3-32 32v120h64v128c0 13.3 10.7 24 24 24s24-10.7 24-24V128z'/%3E%3C/svg%3E">
     <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome Icons -->
@@ -46,7 +50,13 @@
     </div>
 
     <!-- CONTENEDOR PRINCIPAL APP -->
-    <div id="app-container" class="hidden flex-col md:flex-row min-h-screen">
+    <div id="app-container" class="hidden flex-col md:flex-row min-h-screen relative">
+        
+        <!-- Overlay Carga Datos -->
+        <div id="data-loading-overlay" class="absolute inset-0 bg-slate-50 z-[60] flex flex-col items-center justify-center">
+            <i class="fa-solid fa-circle-notch fa-spin text-emerald-600 text-4xl mb-4"></i>
+            <p class="text-slate-500 font-bold animate-pulse">Sincronizando despensa...</p>
+        </div>
         
         <!-- MENÚ DE NAVEGACIÓN LATERAL (DESKTOP) Y INFERIOR (MÓVIL) -->
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-xl z-40 md:top-0 md:right-auto md:w-64 md:border-r md:border-t-0 flex md:flex-col justify-around md:justify-start p-2 md:p-4 gap-2">
@@ -101,10 +111,10 @@
 
                 <!-- Barra añadido rápido con sugerencias limpias -->
                 <div class="relative">
-                    <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+                    <form onsubmit="event.preventDefault(); addCustomShoppingItem();" class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
                         <input type="text" id="input-quick-shop" oninput="handleShopAutocomplete(this.value)" placeholder="Añadir artículo o buscar típico... (ej. Detergente)" class="flex-1 bg-transparent px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none font-medium">
-                        <button onclick="addCustomShoppingItem()" class="bg-emerald-600 hover:bg-emerald-700 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer"><i class="fa-solid fa-plus"></i></button>
-                    </div>
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer"><i class="fa-solid fa-plus"></i></button>
+                    </form>
                     <!-- Panel flotante de autocompletado para móvil -->
                     <div id="shop-autocomplete-box" class="absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto hidden"></div>
                 </div>
@@ -196,10 +206,10 @@
                 <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm max-w-xl space-y-4">
                     <h3 class="font-bold text-slate-900"><i class="fa-solid fa-tags text-emerald-600 mr-2"></i>Gestión de Pasillos / Categorías</h3>
                     
-                    <div class="flex gap-2">
+                    <form onsubmit="event.preventDefault(); createNewCategory();" class="flex gap-2">
                         <input type="text" id="input-new-category" placeholder="Ej. Congelados" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-medium text-slate-800">
-                        <button onclick="createNewCategory()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl shadow-sm cursor-pointer">Añadir</button>
-                    </div>
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl shadow-sm cursor-pointer">Añadir</button>
+                    </form>
 
                     <div id="list-crud-categorias" class="space-y-2 pt-2"></div>
                 </div>
@@ -289,7 +299,8 @@
     <div id="modal-alimento" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md space-y-4">
             <h3 id="modal-alimento-title" class="text-lg font-bold text-slate-950">Crear Alimento Base</h3>
-            <div class="space-y-3 text-sm">
+            <input type="hidden" id="alimento-edit-id">
+            <form onsubmit="event.preventDefault(); saveAlimentoBase();" class="space-y-3 text-sm">
                 <div>
                     <label class="block font-semibold text-slate-500 mb-1">Nombre</label>
                     <input type="text" id="alimento-nombre" placeholder="Ej. Macarrones" class="w-full px-3 py-2 border rounded-xl focus:outline-none text-slate-800 font-medium">
@@ -314,7 +325,7 @@
                 <p class="text-[11px] text-slate-400 -mt-1">Indica cuánto contiene un paquete entero del súper (ej. Un paquete de pasta trae 500g).</p>
                 
                 <div class="border-t pt-2 mt-2">
-                    <label class="block font-bold text-slate-800 mb-2">Información Nutricional (Por cada 100<span class="lbl-generic-unit">g</span>)</label>
+                    <label class="block font-bold text-slate-800 mb-2">Información Nutricional (Por cada <span id="lbl-nutrition-base">100</span><span class="lbl-generic-unit">g</span>)</label>
                     <div class="grid grid-cols-4 gap-2">
                         <div>
                             <label class="text-xs text-slate-500">Kcal</label>
@@ -339,20 +350,21 @@
                     <label class="block font-semibold text-slate-500 mb-1">Pasillo Predeterminado</label>
                     <select id="alimento-categoria" class="w-full px-3 py-2 border rounded-xl text-slate-800 font-semibold"></select>
                 </div>
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeModalAlimento()" class="w-1/3 py-2.5 bg-slate-100 rounded-xl font-bold text-slate-700 cursor-pointer">Cancelar</button>
-                <button onclick="saveAlimentoBase()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold shadow-md cursor-pointer">Guardar Alimento</button>
-            </div>
+                <div class="flex gap-2 pt-2 mt-4">
+                    <button type="button" onclick="closeModalAlimento()" class="w-1/3 py-2.5 bg-slate-100 rounded-xl font-bold text-slate-700 cursor-pointer">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold shadow-md cursor-pointer">Guardar Alimento</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- MODAL NUEVA RECETA / PLATO -->
     <div id="modal-receta" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto space-y-4">
-            <h3 class="text-lg font-bold text-slate-950">Configurar Receta Familiar</h3>
+            <h3 id="modal-receta-title" class="text-lg font-bold text-slate-950">Configurar Receta Familiar</h3>
+            <input type="hidden" id="receta-edit-id">
             
-            <div class="space-y-3 text-sm">
+            <form onsubmit="event.preventDefault(); saveNewRecipe();" class="space-y-3 text-sm">
                 <div>
                     <label class="block font-semibold text-slate-500 mb-1">Nombre de la Receta</label>
                     <input type="text" id="receta-nombre" placeholder="Ej. Tortilla de Patatas" class="w-full px-3 py-2 border rounded-xl focus:outline-none text-slate-800 font-medium">
@@ -373,12 +385,11 @@
                     <label class="block font-semibold text-slate-500 mb-1">Preparación / Pasos</label>
                     <textarea id="receta-instrucciones" rows="3" placeholder="1. Pelar patatas... 2. Batir huevos..." class="w-full px-3 py-2 border rounded-xl focus:outline-none text-slate-800 font-medium"></textarea>
                 </div>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeModalReceta()" class="w-1/3 py-2.5 bg-slate-100 rounded-xl font-bold text-slate-700 cursor-pointer">Cancelar</button>
-                <button onclick="saveNewRecipe()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold shadow-md cursor-pointer">Guardar Plato</button>
-            </div>
+                <div class="flex gap-2 pt-2 mt-4">
+                    <button type="button" onclick="closeModalReceta()" class="w-1/3 py-2.5 bg-slate-100 rounded-xl font-bold text-slate-700 cursor-pointer">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold shadow-md cursor-pointer">Guardar Plato</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -561,6 +572,7 @@
                     if (!appDB.historialNombresCompra) appDB.historialNombresCompra = [...SEED_DATA.historialNombresCompra];
                     else if (!Array.isArray(appDB.historialNombresCompra)) appDB.historialNombresCompra = Object.values(appDB.historialNombresCompra);
                     
+                    document.getElementById('data-loading-overlay').classList.add('hidden');
                     actualizarUI();
                 } else {
                     appDB = JSON.parse(JSON.stringify(SEED_DATA));
@@ -782,8 +794,13 @@
         };
 
         window.deleteShoppingItem = (id) => {
-            appDB.listaCompra = appDB.listaCompra.filter(i => i.id !== id);
-            saveState();
+            const item = appDB.listaCompra.find(i => i.id === id);
+            if(!item) return;
+            customConfirm("Quitar de la lista", `¿Seguro que quieres quitar "${item.nombre}" de la compra?`, () => {
+                appDB.listaCompra = appDB.listaCompra.filter(i => i.id !== id);
+                saveState();
+                showToast("Artículo eliminado");
+            }, "bg-red-600", "fa-trash-can", "bg-red-100 text-red-600");
         };
 
         window.clearCompletedShopping = () => {
@@ -1281,7 +1298,10 @@
                         <span class="font-bold text-slate-800 block">${a.nombre}</span>
                         <span class="text-[10px] text-slate-400">${a.formatoCompra}${a.unit} venta · ${a.kcal} kcal</span>
                     </div>
-                    <button onclick="deleteAlimentoBase('${a.id}')" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                    <div class="flex gap-1">
+                        <button onclick="openModalAlimento('${a.id}')" class="text-slate-400 hover:text-emerald-500 p-1 cursor-pointer"><i class="fa-solid fa-pencil"></i></button>
+                        <button onclick="deleteAlimentoBase('${a.id}')" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 `;
                 rawContainer.appendChild(div);
             });
@@ -1310,7 +1330,10 @@
                     <div class="space-y-1">
                         <div class="flex justify-between items-start">
                             <h4 class="font-extrabold text-slate-900 text-base leading-tight">${r.nombre}</h4>
-                            <button onclick="deleteRecipe('${r.id}')" class="text-slate-400 hover:text-red-500 text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                            <div class="flex gap-2">
+                                <button onclick="openModalReceta('${r.id}')" class="text-slate-400 hover:text-emerald-500 text-xs cursor-pointer"><i class="fa-solid fa-pencil"></i></button>
+                                <button onclick="deleteRecipe('${r.id}')" class="text-slate-400 hover:text-red-500 text-xs cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                            </div>
                         </div>
                         <p class="text-xs font-semibold text-emerald-600 line-clamp-1">Ingr: ${textIngs || 'Ninguno'}</p>
                         <p class="text-xs text-slate-500 line-clamp-2 italic">${r.instrucciones || 'Sin preparación escrita.'}</p>
@@ -1334,7 +1357,7 @@
             ingredientes.forEach(ing => {
                 const al = appDB.alimentos[ing.alimentoId];
                 if (al) {
-                    const ratio = ing.cantidad / 100;
+                    const ratio = (al.unit === 'uds') ? ing.cantidad : (ing.cantidad / 100);
                     kcal += (al.kcal || 0) * ratio;
                     protein += (al.protein || 0) * ratio;
                     carbs += (al.carbs || 0) * ratio;
@@ -1344,10 +1367,35 @@
             return { kcal, protein, carbs, fat };
         }
 
-        window.openModalAlimento = () => {
+        window.openModalAlimento = (editId = null) => {
             const select = document.getElementById('alimento-categoria');
             select.innerHTML = '';
             appDB.categorias.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
+            
+            document.getElementById('alimento-edit-id').value = editId || '';
+            if (editId && appDB.alimentos[editId]) {
+                const al = appDB.alimentos[editId];
+                document.getElementById('modal-alimento-title').innerText = "Editar Alimento Base";
+                document.getElementById('alimento-nombre').value = al.nombre;
+                document.getElementById('alimento-unit').value = al.unit;
+                document.getElementById('alimento-formato').value = al.formatoCompra;
+                document.getElementById('alimento-kcal').value = al.kcal;
+                document.getElementById('alimento-prot').value = al.protein;
+                document.getElementById('alimento-carbs').value = al.carbs;
+                document.getElementById('alimento-fat').value = al.fat;
+                document.getElementById('alimento-categoria').value = al.categoria;
+                updateAlimentoUnitsLabel(al.unit);
+            } else {
+                document.getElementById('modal-alimento-title').innerText = "Crear Alimento Base";
+                document.getElementById('alimento-nombre').value = '';
+                document.getElementById('alimento-unit').value = 'g';
+                document.getElementById('alimento-formato').value = '';
+                document.getElementById('alimento-kcal').value = '';
+                document.getElementById('alimento-prot').value = '';
+                document.getElementById('alimento-carbs').value = '';
+                document.getElementById('alimento-fat').value = '';
+                updateAlimentoUnitsLabel('g');
+            }
             
             document.getElementById('modal-alimento').classList.remove('hidden');
         };
@@ -1356,12 +1404,14 @@
         window.updateAlimentoUnitsLabel = (val) => {
             document.querySelectorAll('.lbl-generic-unit').forEach(el => el.innerText = val);
             document.getElementById('lbl-formato-unit').innerText = val;
+            document.getElementById('lbl-nutrition-base').innerText = val === 'uds' ? '1 ' : '100';
         };
 
         window.saveAlimentoBase = () => {
+            const editId = document.getElementById('alimento-edit-id').value;
             const nombre = document.getElementById('alimento-nombre').value.trim();
             const unit = document.getElementById('alimento-unit').value;
-            const formato = parseFloat(document.getElementById('alimento-formato').value) || 100;
+            const formato = parseFloat(document.getElementById('alimento-formato').value) || (unit === 'uds' ? 1 : 100);
             const kcal = parseFloat(document.getElementById('alimento-kcal').value) || 0;
             const prot = parseFloat(document.getElementById('alimento-prot').value) || 0;
             const carbs = parseFloat(document.getElementById('alimento-carbs').value) || 0;
@@ -1369,15 +1419,19 @@
             const cat = document.getElementById('alimento-categoria').value;
 
             if(nombre === '') return;
-            const id = 'al_' + Date.now();
+            const id = editId ? editId : 'al_' + Date.now();
 
             appDB.alimentos[id] = { id, nombre, unit, formatoCompra: formato, kcal, protein: prot, carbs, fat, categoria: cat };
-            appDB.despensa[id] = { alimentoId: id, qtyEnteros: 0, pctAbierto: 0, categoria: cat };
+            
+            if (!appDB.despensa[id]) {
+                appDB.despensa[id] = { alimentoId: id, qtyEnteros: 0, pctAbierto: 0, categoria: cat };
+            } else {
+                appDB.despensa[id].categoria = cat;
+            }
 
             saveState();
             closeModalAlimento();
-            document.getElementById('alimento-nombre').value = '';
-            showToast(`Creado alimento: ${nombre}`);
+            showToast(editId ? `Actualizado: ${nombre}` : `Creado alimento: ${nombre}`);
         };
 
         window.deleteAlimentoBase = (id) => {
@@ -1389,8 +1443,24 @@
             }, "bg-red-600", "fa-trash-can", "bg-red-100 text-red-600");
         };
 
-        window.openModalReceta = () => {
-            recipeDraftIngredients = [];
+        window.openModalReceta = (editId = null) => {
+            document.getElementById('receta-edit-id').value = editId || '';
+            
+            if (editId && appDB.recetas) {
+                const r = appDB.recetas.find(r => r.id === editId);
+                if (r) {
+                    document.getElementById('modal-receta-title').innerText = "Editar Receta Familiar";
+                    document.getElementById('receta-nombre').value = r.nombre;
+                    document.getElementById('receta-instrucciones').value = r.instrucciones || '';
+                    recipeDraftIngredients = JSON.parse(JSON.stringify(Array.isArray(r.ingredientes) ? r.ingredientes : Object.values(r.ingredientes || {})));
+                }
+            } else {
+                document.getElementById('modal-receta-title').innerText = "Configurar Receta Familiar";
+                document.getElementById('receta-nombre').value = '';
+                document.getElementById('receta-instrucciones').value = '';
+                recipeDraftIngredients = [];
+            }
+            
             renderRecipeDraftIngredientsTable();
 
             const select = document.getElementById('receta-picker-alimento');
@@ -1443,6 +1513,7 @@
         };
 
         window.saveNewRecipe = () => {
+            const editId = document.getElementById('receta-edit-id').value;
             const nombre = document.getElementById('receta-nombre').value.trim();
             const inst = document.getElementById('receta-instrucciones').value.trim();
 
@@ -1451,18 +1522,25 @@
                 return;
             }
 
-            appDB.recetas.push({
-                id: 'rec_' + Date.now(),
-                nombre,
-                instrucciones: inst,
-                ingredientes: [...recipeDraftIngredients]
-            });
+            if (editId) {
+                const rIndex = appDB.recetas.findIndex(r => r.id === editId);
+                if (rIndex > -1) {
+                    appDB.recetas[rIndex].nombre = nombre;
+                    appDB.recetas[rIndex].instrucciones = inst;
+                    appDB.recetas[rIndex].ingredientes = [...recipeDraftIngredients];
+                }
+            } else {
+                appDB.recetas.push({
+                    id: 'rec_' + Date.now(),
+                    nombre,
+                    instrucciones: inst,
+                    ingredientes: [...recipeDraftIngredients]
+                });
+            }
 
             saveState();
             closeModalReceta();
-            document.getElementById('receta-nombre').value = '';
-            document.getElementById('receta-instrucciones').value = '';
-            showToast(`Guardada receta: ${nombre}`);
+            showToast(editId ? `Receta actualizada: ${nombre}` : `Guardada receta: ${nombre}`);
         };
 
         window.deleteRecipe = (id) => {
@@ -1643,6 +1721,15 @@
         }
 
         switchTab('lista');
+        
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => {
+                    console.log('SW registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>

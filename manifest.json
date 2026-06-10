@@ -1,0 +1,17 @@
+{
+  "name": "GastroPlan",
+  "short_name": "GastroPlan",
+  "description": "Planificación eficiente, macros controlados y lista de la compra compartida.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23059669' d='M256 0c141.4 0 256 114.6 256 256S397.4 512 256 512 0 397.4 0 256 114.6 0 256 0zM170.8 132.8c-10.4-3.5-21.7 2-25.2 12.4s2 21.7 12.4 25.2c19.1 6.4 33 24.3 33 45.6v56H159v56h32v80c0 13.3 10.7 24 24 24s24-10.7 24-24V328h32v-56H239V216c0-43.9-35.6-79.5-79.5-79.5l11.3-3.7zM368 128h-32c-17.7 0-32 14.3-32 32v120h64v128c0 13.3 10.7 24 24 24s24-10.7 24-24V128z'/%3E%3C/svg%3E",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
